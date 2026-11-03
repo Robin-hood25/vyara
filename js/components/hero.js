@@ -83,7 +83,7 @@ export function createHero(site) {
   // Guarantee continuous looping playback without interruption
   const ensurePlaying = () => {
     if (bgVideo.paused) {
-      bgVideo.play().catch(() => {});
+      bgVideo.play().catch(() => { });
     }
   };
 
