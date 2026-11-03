@@ -60,6 +60,7 @@ async function run() {
       expression: `(() => {
         const heroCard = document.querySelector(".hero-card");
         const heroSidePanel = document.querySelector(".hero-side-panel");
+        const heroPills = document.querySelector(".hero-text .hero-service-pills, .hero-text .hud-pill");
         const cinemaBtn = document.querySelector(".hero-cinema-btn");
         const soundBtn = document.querySelector(".hero-sound-toggle-btn");
         const slotCard = document.querySelector(".hero-slot-card");
@@ -70,6 +71,7 @@ async function run() {
         return {
           hasHeroCard: !!heroCard,
           hasHeroSidePanel: !!heroSidePanel,
+          hasHeroPills: !!heroPills,
           hasCinemaBtn: !!cinemaBtn && cinemaBtn.innerText.trim(),
           hasSoundBtn: !!soundBtn && soundBtn.innerText.trim(),
           hasSlotCard: !!slotCard,

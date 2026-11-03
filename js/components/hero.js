@@ -2,10 +2,6 @@ import { el, formatINR } from "../utils/dom.js";
 
 export function createHero(site) {
   const soloFee = site.entryFees?.solo || site.entryFeeSolo || 350;
-  const squadFee = site.entryFees?.squad || site.entryFeeSquad || site.entryFee || 1200;
-  const firstPrize = site.prizes?.first || 10000;
-  const secondPrize = site.prizes?.second || 5000;
-  const luckyPool = site.prizes?.luckyDraw || 10000;
 
   // Live status badge & kicker
   const liveBadge = el("span", { className: "badge badge-live" }, [
@@ -23,21 +19,6 @@ export function createHero(site) {
     "DROP IN. OUTLAST EVERYONE.",
     el("br"),
     el("span", { className: "gradient-text" }, "₹25,000 TOTAL PRIZE POOL")
-  ]);
-
-  const telemetryBadges = el("div", { className: "hero-service-pills" }, [
-    el("div", { className: "hud-pill" }, [
-      el("span", { className: "hud-num" }, "01"),
-      el("span", { className: "hud-label" }, `SOLO: SOLD OUT · SQUAD ${formatINR(squadFee)}`)
-    ]),
-    el("div", { className: "hud-pill" }, [
-      el("span", { className: "hud-num" }, "02"),
-      el("span", { className: "hud-label" }, `1ST: ${formatINR(firstPrize)} · 2ND: ${formatINR(secondPrize)}`)
-    ]),
-    el("div", { className: "hud-pill" }, [
-      el("span", { className: "hud-num" }, "03"),
-      el("span", { className: "hud-label" }, `LUCKY POOL: ${formatINR(luckyPool)} (PRE-BOOKINGS ONLY)`)
-    ])
   ]);
 
   const ctaPrimary = el("div", { className: "cta-primary-group" }, [
@@ -64,7 +45,7 @@ export function createHero(site) {
 
   const ctaRow = el("div", { className: "cta-row" }, [ctaPrimary, ctaSecondary]);
 
-  const heroText = el("div", { className: "hero-text" }, [kicker, h1, telemetryBadges, ctaRow]);
+  const heroText = el("div", { className: "hero-text" }, [kicker, h1, ctaRow]);
 
   // Live Tournament Capacity
   const slotsFilled = 38;

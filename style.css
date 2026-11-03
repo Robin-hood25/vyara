@@ -3996,8 +3996,8 @@ h3 {
 
   .hero-content-grid {
     grid-template-columns: 1fr;
-    gap: 40px;
-    padding: 0 20px;
+    gap: 24px;
+    padding: 0 16px;
   }
   .hero-text {
     text-align: center;
@@ -4040,11 +4040,12 @@ h3 {
 
 @media (max-width: 576px) {
   .hero {
-    padding: 100px 0 50px;
+    padding: 92px 0 36px;
   }
   .hero-headline {
-    font-size: clamp(1.8rem, 6.5vw, 2.4rem);
+    font-size: clamp(1.75rem, 6.2vw, 2.3rem);
     line-height: 1.1;
+    margin: 0 0 14px;
   }
   .hero-card {
     padding: 24px 18px;
