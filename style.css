@@ -4986,17 +4986,51 @@ h3 {
   position: absolute;
   width: 44px;
   height: 44px;
-  transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(calc(var(--scale, 1) * 0.4));
-  opacity: 0;
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
   pointer-events: none;
   user-select: none;
-  will-change: transform, opacity;
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: visible;
+  z-index: 4;
 }
 
-.bullet-impact-item.is-impacted {
-  opacity: 1;
-  transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(var(--scale, 1));
+.bullet-impact-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.bullet-sparks-svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130px;
+  height: 130px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+  will-change: opacity;
+}
+
+.spark-streaks-group line {
+  transition: none; /* strictly scroll-driven */
+}
+
+.bullet-hole-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform-origin: center center;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
 }
 
 .bullet-impact-svg {
@@ -5004,13 +5038,21 @@ h3 {
   height: 100%;
   display: block;
   pointer-events: none;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.95));
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.95));
 }
 
 @media (max-width: 768px) {
   .bullet-impact-item {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
+  }
+  .bullet-sparks-svg {
+    width: 90px;
+    height: 90px;
+  }
+  .bullet-hole-wrapper {
+    width: 30px;
+    height: 30px;
   }
   .bullet-impact-item.bullet-side-left {
     left: clamp(10px, 3.5vw, 24px) !important;

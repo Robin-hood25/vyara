@@ -1,21 +1,176 @@
 /**
- * VYRA ESPORTS — Cinematic Scroll-Driven Bullet Impact Holes
+ * VYRA ESPORTS — Realistic Bullet Impact Sparks + Bullet Holes
  *
- * Core Behaviors:
- * 1. Appears strictly AFTER hero background video / hero section ends.
- * 2. Completely invisible inside the hero section.
- * 3. As user scrolls down, new bullet holes appear progressively along an irregular path.
- * 4. Scrolling upward removes bullet holes in reverse order.
- * 5. Stationary when scrolling stops (zero timers, zero loops, zero random regeneration).
- * 6. Placed above background surfaces but behind all foreground content (z-index: 4).
- * 7. Never obscures text, cards, buttons, or interactive elements.
- * 8. Respects reduced-motion preferences.
+ * Exact Two-Stage Animation Sequence (Scroll-Driven):
+ *   Stage 1 — Sparks:
+ *     As user reaches an impact threshold, show a brief burst of realistic metallic
+ *     impact sparks (varied trajectories, lengths, brightness; warm white, pale yellow,
+ *     amber-orange highlights) plus a sharp, tiny central impact flash.
+ *   Stage 2 — Bullet Hole:
+ *     Immediately as sparks spread and fade, the realistic bullet hole appears at the
+ *     exact same impact point and remains permanently visible.
+ *
+ * Strict Scroll Synchronization:
+ *   - 100% deterministic mapping from scroll progress.
+ *   - Zero autonomous timers, idle animation loops, or random regeneration.
+ *   - Scrolling down reveals sparks then hole; scrolling up reverses the sequence.
+ *   - Stopping freezes the animation at the exact current frame.
+ *   - Completely invisible inside the hero section; activates only after hero bottom.
+ *   - Layered above dark background but behind all interactive content (z-index: 4).
+ *   - Respects prefers-reduced-motion.
  */
 
 import { el } from "../utils/dom.js";
 
 /**
- * High-detail realistic ballistic impact SVG templates
+ * Predefined deterministic bullet impact marks across sub-hero background corridors.
+ * All positions are kept in safe background gutters (far-left 5-8vw, far-right 89-94vw)
+ * so they never collide with foreground cards or text.
+ */
+export const BULLET_IMPACTS = [
+  // 1. Immediately below hero in left corridor
+  { id: "impact-1", topVh: 22, leftVw: 5.5, side: "left", variant: 1, rot: -15, scale: 1.0, threshold: 0.00 },
+  // 2. Upper-right corridor of Tournament Overview
+  { id: "impact-2", topVh: 32, leftVw: 92.5, side: "right", variant: 2, rot: 28, scale: 1.05, threshold: 0.05 },
+  // 3. Mid-left margin
+  { id: "impact-3", topVh: 42, leftVw: 7.2, side: "left", variant: 3, rot: -42, scale: 0.95, threshold: 0.11 },
+  // 4. Upper-right corridor of Format & Rules
+  { id: "impact-4", topVh: 52, leftVw: 91.0, side: "right", variant: 1, rot: 12, scale: 1.02, threshold: 0.18 },
+  // 5. Lower-left margin
+  { id: "impact-5", topVh: 62, leftVw: 5.0, side: "left", variant: 2, rot: 55, scale: 0.96, threshold: 0.25 },
+  // 6. Lower-right margin
+  { id: "impact-6", topVh: 72, leftVw: 93.5, side: "right", variant: 3, rot: -8, scale: 1.06, threshold: 0.32 },
+  // 7. Prize Pool left corridor
+  { id: "impact-7", topVh: 28, leftVw: 8.0, side: "left", variant: 1, rot: 34, scale: 0.98, threshold: 0.39 },
+  // 8. Prize Pool right corridor
+  { id: "impact-8", topVh: 38, leftVw: 89.5, side: "right", variant: 2, rot: -25, scale: 1.04, threshold: 0.46 },
+  // 9. Rules section left margin
+  { id: "impact-9", topVh: 48, leftVw: 6.2, side: "left", variant: 3, rot: 18, scale: 0.96, threshold: 0.53 },
+  // 10. Rules section right margin
+  { id: "impact-10", topVh: 58, leftVw: 92.0, side: "right", variant: 1, rot: -60, scale: 1.02, threshold: 0.60 },
+  // 11. My Tickets left corridor
+  { id: "impact-11", topVh: 68, leftVw: 7.5, side: "left", variant: 2, rot: 40, scale: 1.00, threshold: 0.67 },
+  // 12. My Tickets right corridor
+  { id: "impact-12", topVh: 78, leftVw: 90.0, side: "right", variant: 3, rot: -10, scale: 1.05, threshold: 0.74 },
+  // 13. Refer & Earn left corridor
+  { id: "impact-13", topVh: 34, leftVw: 5.2, side: "left", variant: 1, rot: -32, scale: 0.94, threshold: 0.80 },
+  // 14. Refer & Earn right corridor
+  { id: "impact-14", topVh: 46, leftVw: 93.0, side: "right", variant: 2, rot: 22, scale: 1.08, threshold: 0.86 },
+  // 15. FAQ & Contact left corridor
+  { id: "impact-15", topVh: 64, leftVw: 8.2, side: "left", variant: 3, rot: -15, scale: 0.98, threshold: 0.91 },
+  // 16. FAQ & Contact right corridor
+  { id: "impact-16", topVh: 76, leftVw: 91.5, side: "right", variant: 1, rot: 48, scale: 1.02, threshold: 0.96 }
+];
+
+/**
+ * Deterministic metallic ballistic spark definitions
+ * Fast ricochet angles, varied lengths, and authentic incandescent colors.
+ */
+function getDeterministicSparks(variant, rot, isMobile = false) {
+  const base = [
+    { a: 18,  d: 38, l: 12, w: 1.6, c: "#FFFFFF" },
+    { a: 52,  d: 46, l: 15, w: 1.5, c: "#FFF8DC" },
+    { a: 86,  d: 30, l: 9,  w: 1.2, c: "#FFD166" },
+    { a: 128, d: 44, l: 13, w: 1.7, c: "#FF9F1C" },
+    { a: 164, d: 26, l: 8,  w: 1.1, c: "#FFF3B0" },
+    { a: 202, d: 42, l: 14, w: 1.4, c: "#FFFFFF" },
+    { a: 242, d: 48, l: 16, w: 1.8, c: "#FFF4CC" },
+    { a: 282, d: 32, l: 10, w: 1.3, c: "#FFB703" },
+    { a: 316, d: 45, l: 15, w: 1.6, c: "#FF9F1C" },
+    { a: 348, d: 36, l: 11, w: 1.4, c: "#FFFFFF" },
+    { a: 72,  d: 22, l: 7,  w: 1.0, c: "#FFD166" },
+    { a: 224, d: 25, l: 8,  w: 1.1, c: "#FFE899" }
+  ];
+
+  // Mobile optimization: 8 particles instead of 12 for high performance
+  const list = isMobile ? base.slice(0, 8) : base;
+
+  const angleOffset = (rot * 1.5 + variant * 36) % 360;
+  return list.map((s) => ({
+    angle: (s.a + angleOffset) % 360,
+    maxDist: s.d * (variant === 2 ? 1.08 : variant === 3 ? 0.94 : 1.0),
+    len: s.l,
+    width: s.w,
+    color: s.c
+  }));
+}
+
+/**
+ * Creates the high-speed spark burst SVG (Stage 1)
+ */
+function createSparksSvg(id, variant, rot, isMobile) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "-60 -60 120 120");
+  svg.setAttribute("class", "bullet-sparks-svg");
+  svg.setAttribute("aria-hidden", "true");
+
+  const flashGradId = `sparkFlash_${id}`;
+  const ambientGradId = `sparkAmbient_${id}`;
+
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  defs.innerHTML = `
+    <radialGradient id="${flashGradId}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="35%" stop-color="#FFF3B0" />
+      <stop offset="70%" stop-color="#FF9F1C" />
+      <stop offset="100%" stop-color="rgba(255, 48, 59, 0)" />
+    </radialGradient>
+    <radialGradient id="${ambientGradId}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(255, 235, 170, 0.45)" />
+      <stop offset="40%" stop-color="rgba(255, 160, 40, 0.25)" />
+      <stop offset="100%" stop-color="rgba(255, 48, 59, 0)" />
+    </radialGradient>
+  `;
+  svg.appendChild(defs);
+
+  // Subtle ambient surface illumination on impact
+  const ambientEl = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  ambientEl.setAttribute("class", "spark-ambient");
+  ambientEl.setAttribute("cx", "0");
+  ambientEl.setAttribute("cy", "0");
+  ambientEl.setAttribute("r", "28");
+  ambientEl.setAttribute("fill", `url(#${ambientGradId})`);
+  ambientEl.setAttribute("opacity", "0");
+  svg.appendChild(ambientEl);
+
+  // Spark streaks container
+  const streaksGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  streaksGroup.setAttribute("class", "spark-streaks-group");
+
+  const sparkDefs = getDeterministicSparks(variant, rot, isMobile);
+  const sparkLines = [];
+
+  for (const def of sparkDefs) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", "0");
+    line.setAttribute("y1", "0");
+    line.setAttribute("x2", "0");
+    line.setAttribute("y2", "0");
+    line.setAttribute("stroke", def.color);
+    line.setAttribute("stroke-width", String(def.width));
+    line.setAttribute("stroke-linecap", "round");
+    line.setAttribute("opacity", "0");
+    streaksGroup.appendChild(line);
+    sparkLines.push({ line, def });
+  }
+
+  svg.appendChild(streaksGroup);
+
+  // Tiny, sharp central impact flash
+  const flashEl = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  flashEl.setAttribute("class", "spark-flash-core");
+  flashEl.setAttribute("cx", "0");
+  flashEl.setAttribute("cy", "0");
+  flashEl.setAttribute("r", "5.5");
+  flashEl.setAttribute("fill", `url(#${flashGradId})`);
+  flashEl.setAttribute("opacity", "0");
+  svg.appendChild(flashEl);
+
+  return { svg, ambientEl, flashEl, sparkLines, sparkDefs };
+}
+
+/**
+ * Creates the high-detail realistic ballistic impact bullet hole SVG (Stage 2)
  */
 function createBulletSvg(variant = 1) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -54,7 +209,7 @@ function createBulletSvg(variant = 1) {
       <!-- Deep central entry puncture -->
       <polygon points="32,23 37,25 40,29 41,34 38,39 33,41 27,41 23,37 22,32 25,26" fill="url(#holeDepth1)" stroke="#000000" stroke-width="1" />
       <!-- Specular rim highlight on top-left edge -->
-      <path d="M 23 23 Q 32 19 41 22" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round" />
+      <path d="M 23 23 Q 32 19 41 22" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-linecap="round" />
     `;
   } else if (variant === 2) {
     svg.innerHTML = `
@@ -114,47 +269,11 @@ function createBulletSvg(variant = 1) {
 }
 
 /**
- * Predefined deterministic bullet impact marks across sub-hero background regions
- */
-export const BULLET_IMPACTS = [
-  // 1. Immediately visible right below hero in left background corridor
-  { id: "impact-1", topVh: 22, leftVw: 5.5, side: "left", variant: 1, rot: -15, scale: 1.0, threshold: 0.00 },
-  // 2. Upper-right corridor as user scrolls into Tournament Overview
-  { id: "impact-2", topVh: 32, leftVw: 92.5, side: "right", variant: 2, rot: 28, scale: 1.05, threshold: 0.05 },
-  // 3. Mid-left margin
-  { id: "impact-3", topVh: 42, leftVw: 7.2, side: "left", variant: 3, rot: -42, scale: 0.95, threshold: 0.11 },
-  // 4. Upper-right corridor of Format & Rules
-  { id: "impact-4", topVh: 52, leftVw: 91.0, side: "right", variant: 1, rot: 12, scale: 1.02, threshold: 0.18 },
-  // 5. Lower-left margin
-  { id: "impact-5", topVh: 62, leftVw: 5.0, side: "left", variant: 2, rot: 55, scale: 0.96, threshold: 0.25 },
-  // 6. Lower-right margin
-  { id: "impact-6", topVh: 72, leftVw: 93.5, side: "right", variant: 3, rot: -8, scale: 1.06, threshold: 0.32 },
-  // 7. Middle section left corridor (Prize Pool)
-  { id: "impact-7", topVh: 28, leftVw: 8.0, side: "left", variant: 1, rot: 34, scale: 0.98, threshold: 0.39 },
-  // 8. Middle section right corridor (Prize Pool)
-  { id: "impact-8", topVh: 38, leftVw: 89.5, side: "right", variant: 2, rot: -25, scale: 1.04, threshold: 0.46 },
-  // 9. Rules section left margin
-  { id: "impact-9", topVh: 48, leftVw: 6.2, side: "left", variant: 3, rot: 18, scale: 0.96, threshold: 0.53 },
-  // 10. Rules section right margin
-  { id: "impact-10", topVh: 58, leftVw: 92.0, side: "right", variant: 1, rot: -60, scale: 1.02, threshold: 0.60 },
-  // 11. My Tickets section left margin
-  { id: "impact-11", topVh: 68, leftVw: 7.5, side: "left", variant: 2, rot: 40, scale: 1.00, threshold: 0.67 },
-  // 12. My Tickets section right margin
-  { id: "impact-12", topVh: 78, leftVw: 90.0, side: "right", variant: 3, rot: -10, scale: 1.05, threshold: 0.74 },
-  // 13. Refer & Earn left corridor
-  { id: "impact-13", topVh: 34, leftVw: 5.2, side: "left", variant: 1, rot: -32, scale: 0.94, threshold: 0.80 },
-  // 14. Refer & Earn right corridor
-  { id: "impact-14", topVh: 46, leftVw: 93.0, side: "right", variant: 2, rot: 22, scale: 1.08, threshold: 0.86 },
-  // 15. FAQ & Contact left corridor
-  { id: "impact-15", topVh: 64, leftVw: 8.2, side: "left", variant: 3, rot: -15, scale: 0.98, threshold: 0.91 },
-  // 16. FAQ & Contact right corridor
-  { id: "impact-16", topVh: 76, leftVw: 91.5, side: "right", variant: 1, rot: 48, scale: 1.02, threshold: 0.96 }
-];
-
-/**
- * Creates the persistent bullet holes stage and viewport
+ * Creates the persistent scroll bullet container and all node references
  */
 export function createScrollBulletsElement() {
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+
   const stage = el("div", {
     className: "scroll-bullets-stage",
     id: "scrollBulletsStage",
@@ -170,20 +289,44 @@ export function createScrollBulletsElement() {
   const impactNodes = [];
 
   for (const item of BULLET_IMPACTS) {
-    const itemEl = el("div", {
-      className: `bullet-impact-item bullet-side-${item.side}`,
-      id: item.id,
-      style: `top: ${item.topVh}vh; left: ${item.leftVw}vw; --rot: ${item.rot}deg; --scale: ${item.scale};`
+    const sparksData = createSparksSvg(item.id, item.variant, item.rot, isMobile);
+
+    const holeWrapper = el("div", {
+      className: "bullet-hole-wrapper",
+      style: `transform: translate(-50%, -50%) rotate(${item.rot}deg) scale(0.4); opacity: 0; visibility: hidden;`
     }, [
       createBulletSvg(item.variant)
     ]);
 
+    const impactContainer = el("div", { className: "bullet-impact-container" }, [
+      sparksData.svg,
+      holeWrapper
+    ]);
+
+    const itemEl = el("div", {
+      className: `bullet-impact-item bullet-side-${item.side}`,
+      id: item.id,
+      style: `top: ${item.topVh}vh; left: ${item.leftVw}vw; --rot: ${item.rot}deg; --scale: ${item.scale}; visibility: hidden;`
+    }, [
+      impactContainer
+    ]);
+
     viewport.appendChild(itemEl);
+
     impactNodes.push({
       id: item.id,
       threshold: item.threshold,
-      el: itemEl,
-      active: false
+      variant: item.variant,
+      rot: item.rot,
+      scale: item.scale,
+      itemEl,
+      sparksSvg: sparksData.svg,
+      ambientEl: sparksData.ambientEl,
+      flashEl: sparksData.flashEl,
+      sparkLines: sparksData.sparkLines,
+      holeWrapper,
+      active: false,
+      completed: false
     });
   }
 
@@ -192,7 +335,13 @@ export function createScrollBulletsElement() {
 }
 
 /**
- * Initializes the scroll-driven bullet impact system
+ * Short scroll-progress span for the two-stage impact event
+ * ~2.6% of available sub-hero scroll per bullet impact.
+ */
+const IMPACT_SPAN = 0.026;
+
+/**
+ * Initializes the scroll-driven realistic bullet impact system
  */
 export function initScrollBullets() {
   if (typeof document === "undefined" || typeof window === "undefined") return;
@@ -218,14 +367,6 @@ export function initScrollBullets() {
     } else {
       document.body.appendChild(stage);
     }
-  } else {
-    // Collect existing nodes if already mounted
-    impactNodes = BULLET_IMPACTS.map((item) => ({
-      id: item.id,
-      threshold: item.threshold,
-      el: document.getElementById(item.id),
-      active: false
-    })).filter(n => n.el !== null);
   }
 
   let ticking = false;
@@ -251,22 +392,35 @@ export function initScrollBullets() {
     maxScroll = Math.max(1, docHeight - window.innerHeight);
   }
 
+  /**
+   * Deterministic scroll evaluation function.
+   * Completely maps scrollY to visual state with zero wall-clock dependencies.
+   */
   function update() {
     const scrollY = window.scrollY || window.pageYOffset || 0;
     const hero = document.getElementById("hero");
-    
-    // Live detection: While hero is visible in viewport, NO bullet holes are shown
+
+    // Dynamic hero boundary check:
+    // While hero is visible in the viewport, NO sparks or bullet holes appear.
     const heroRect = hero ? hero.getBoundingClientRect() : null;
     const isHeroVisible = heroRect ? heroRect.bottom > 0 : (scrollY <= heroBottom);
 
     if (isHeroVisible) {
       viewport.style.opacity = "0";
       viewport.style.visibility = "hidden";
+
       for (let i = 0; i < impactNodes.length; i++) {
         const node = impactNodes[i];
-        if (node.active) {
+        if (node.active || node.completed) {
           node.active = false;
-          node.el.classList.remove("is-impacted");
+          node.completed = false;
+          node.itemEl.style.visibility = "hidden";
+          node.sparksSvg.style.opacity = "0";
+          node.ambientEl.setAttribute("opacity", "0");
+          node.flashEl.setAttribute("opacity", "0");
+          node.holeWrapper.style.visibility = "hidden";
+          node.holeWrapper.style.opacity = "0";
+          node.holeWrapper.style.transform = `translate(-50%, -50%) rotate(${node.rot}deg) scale(0.4)`;
         }
       }
       ticking = false;
@@ -281,18 +435,102 @@ export function initScrollBullets() {
     const scrollBeyondHero = Math.max(0, scrollY - heroBottom);
     const progress = Math.max(0, Math.min(1, scrollBeyondHero / availableScroll));
 
-    // Reveal impacts in sequence, and remove in reverse order when scrolling up
+    // Evaluate each impact deterministically
     for (let i = 0; i < impactNodes.length; i++) {
       const node = impactNodes[i];
-      if (progress >= node.threshold) {
-        if (!node.active) {
-          node.active = true;
-          node.el.classList.add("is-impacted");
+      const localProgress = (progress - node.threshold) / IMPACT_SPAN;
+
+      if (localProgress < 0) {
+        // --- Inactive (not reached yet or scrolled back above threshold) ---
+        if (node.active || node.completed) {
+          node.active = false;
+          node.completed = false;
+          node.itemEl.style.visibility = "hidden";
+          node.sparksSvg.style.opacity = "0";
+          node.ambientEl.setAttribute("opacity", "0");
+          node.flashEl.setAttribute("opacity", "0");
+          node.holeWrapper.style.visibility = "hidden";
+          node.holeWrapper.style.opacity = "0";
+          node.holeWrapper.style.transform = `translate(-50%, -50%) rotate(${node.rot}deg) scale(0.4)`;
+        }
+      } else if (localProgress < 1.0) {
+        // --- Active Transition (Stage 1 Sparks Burst -> Stage 2 Bullet Hole) ---
+        node.active = true;
+        node.completed = false;
+        node.itemEl.style.visibility = "visible";
+
+        // 1. Central Impact Flash & Ambient Glow (Active only in initial fraction: 0.0 to 0.3)
+        if (localProgress <= 0.30) {
+          const flashIn = Math.min(1, localProgress / 0.07);
+          const flashOut = Math.max(0, 1 - (localProgress - 0.07) / 0.23);
+          const flashOpacity = (flashIn * flashOut).toFixed(3);
+          node.flashEl.setAttribute("opacity", flashOpacity);
+          node.ambientEl.setAttribute("opacity", (flashOpacity * 0.7).toFixed(3));
+        } else {
+          node.flashEl.setAttribute("opacity", "0");
+          node.ambientEl.setAttribute("opacity", "0");
+        }
+
+        // 2. High-Speed Metallic Spark Streaks (Active 0.0 to 0.85)
+        if (localProgress <= 0.85) {
+          node.sparksSvg.style.opacity = "1";
+          const sp = Math.min(1, localProgress / 0.82);
+
+          // Ballistic expansion (fast launch, gradual air-friction deceleration)
+          const travel = 1 - Math.pow(1 - sp, 2.4);
+
+          // Fast ignition then cooling dissipation
+          const sparkIn = Math.min(1, sp / 0.12);
+          const sparkOut = Math.max(0, 1 - Math.max(0, sp - 0.42) / 0.58);
+          const sparkOpacity = (sparkIn * sparkOut).toFixed(3);
+
+          for (let j = 0; j < node.sparkLines.length; j++) {
+            const item = node.sparkLines[j];
+            const def = item.def;
+            const r = def.maxDist * travel;
+            const streakLen = def.len * Math.min(1, sp * 2.2) * (1 - sp * 0.35);
+            const tailR = Math.max(0, r - streakLen);
+            const rad = (def.angle * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            item.line.setAttribute("x1", (tailR * cos).toFixed(1));
+            item.line.setAttribute("y1", (tailR * sin).toFixed(1));
+            item.line.setAttribute("x2", (r * cos).toFixed(1));
+            item.line.setAttribute("y2", (r * sin).toFixed(1));
+            item.line.setAttribute("opacity", sparkOpacity);
+          }
+        } else {
+          node.sparksSvg.style.opacity = "0";
+        }
+
+        // 3. Bullet Hole Emergence at exact impact origin (Reveals 0.35 to 0.75)
+        if (localProgress >= 0.35) {
+          node.holeWrapper.style.visibility = "visible";
+          const hp = Math.min(1, (localProgress - 0.35) / 0.40);
+          const holeScale = (0.55 + 0.45 * Math.sin(hp * Math.PI / 2)).toFixed(3);
+          const holeOpacity = hp.toFixed(3);
+          node.holeWrapper.style.opacity = holeOpacity;
+          node.holeWrapper.style.transform = `translate(-50%, -50%) rotate(${node.rot}deg) scale(${holeScale})`;
+        } else {
+          node.holeWrapper.style.visibility = "hidden";
+          node.holeWrapper.style.opacity = "0";
+          node.holeWrapper.style.transform = `translate(-50%, -50%) rotate(${node.rot}deg) scale(0.4)`;
         }
       } else {
-        if (node.active) {
+        // --- Completed (localProgress >= 1.0): Sparks Faded, Bullet Hole Permanently Remains ---
+        if (!node.completed) {
+          node.completed = true;
           node.active = false;
-          node.el.classList.remove("is-impacted");
+          node.itemEl.style.visibility = "visible";
+          // Sparks and flash completely removed (zero continuous glow)
+          node.sparksSvg.style.opacity = "0";
+          node.ambientEl.setAttribute("opacity", "0");
+          node.flashEl.setAttribute("opacity", "0");
+          // Bullet hole permanently crisp and visible at exact impact point
+          node.holeWrapper.style.visibility = "visible";
+          node.holeWrapper.style.opacity = "1";
+          node.holeWrapper.style.transform = `translate(-50%, -50%) rotate(${node.rot}deg) scale(1)`;
         }
       }
     }
