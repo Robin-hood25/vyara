@@ -25,31 +25,6 @@ export function createHero(site) {
     el("span", { className: "gradient-text" }, "₹25,000 TOTAL PRIZE POOL")
   ]);
 
-  const lead = el(
-    "p",
-    { className: "lead" },
-    `Assemble your squad for the championship: 1st Prize ${formatINR(firstPrize)}, 2nd Prize ${formatINR(secondPrize)}, and an exclusive ${formatINR(luckyPool)} Lucky Pool for eligible pre-bookings. Solo slots are completely SOLD OUT. Squad lobbies active.`
-  );
-
-  const ctaRow = el("div", { className: "cta-row" }, [
-    el("button", {
-      className: "btn btn-glow btn-hero",
-      type: "button",
-      id: "heroPrebookBtn",
-      "data-action": "open-prebook",
-      "aria-label": "Pre-Book Your Squad"
-    }, [
-      el("span", { className: "btn-dot" }),
-      "Pre-Book Your Squad"
-    ]),
-    el("span", { className: "btn-sold-out", "aria-disabled": "true", role: "status", title: "Solo player slots are completely filled" }, [
-      el("span", { className: "badge-sold-out" }, "SOLD OUT"),
-      `Solo (${formatINR(soloFee)})`
-    ]),
-    el("a", { className: "btn btn-ghost", href: "#my-tickets" }, "My Tickets"),
-    el("a", { className: "btn btn-ghost", href: "#prizes" }, "Prize Pool")
-  ]);
-
   const telemetryBadges = el("div", { className: "hero-service-pills" }, [
     el("div", { className: "hud-pill" }, [
       el("span", { className: "hud-num" }, "01"),
@@ -65,7 +40,31 @@ export function createHero(site) {
     ])
   ]);
 
-  const heroText = el("div", { className: "hero-text" }, [kicker, h1, lead, ctaRow, telemetryBadges]);
+  const ctaPrimary = el("div", { className: "cta-primary-group" }, [
+    el("button", {
+      className: "btn btn-glow btn-hero",
+      type: "button",
+      id: "heroPrebookBtn",
+      "data-action": "open-prebook",
+      "aria-label": "Pre-Book Your Squad"
+    }, [
+      el("span", { className: "btn-dot" }),
+      "Pre-Book Your Squad"
+    ]),
+    el("span", { className: "btn-sold-out", "aria-disabled": "true", role: "status", title: "Solo player slots are completely filled" }, [
+      el("span", { className: "badge-sold-out" }, "SOLD OUT"),
+      `Solo (${formatINR(soloFee)})`
+    ])
+  ]);
+
+  const ctaSecondary = el("div", { className: "cta-secondary-group" }, [
+    el("a", { className: "btn btn-ghost", href: "#my-tickets" }, "My Tickets"),
+    el("a", { className: "btn btn-ghost", href: "#prizes" }, "Prize Pool")
+  ]);
+
+  const ctaRow = el("div", { className: "cta-row" }, [ctaPrimary, ctaSecondary]);
+
+  const heroText = el("div", { className: "hero-text" }, [kicker, h1, telemetryBadges, ctaRow]);
 
   // Countdown timer blocks (Preserving IDs for app.js)
   const countdown = el("div", { className: "count", id: "countdown", role: "timer" }, [
