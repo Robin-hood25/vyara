@@ -1,8 +1,6 @@
-import { el, formatINR } from "../utils/dom.js";
+import { el } from "../utils/dom.js";
 
 export function createHero(site) {
-  const soloFee = site.entryFees?.solo || site.entryFeeSolo || 350;
-
   // Live status badge & kicker
   const liveBadge = el("span", { className: "badge badge-live" }, [
     el("span", { className: "live-dot" }),
@@ -31,10 +29,6 @@ export function createHero(site) {
     }, [
       el("span", { className: "btn-dot" }),
       "Pre-Book Your Squad"
-    ]),
-    el("span", { className: "btn-sold-out", "aria-disabled": "true", role: "status", title: "Solo player slots are completely filled" }, [
-      el("span", { className: "badge-sold-out" }, "SOLD OUT"),
-      `Solo (${formatINR(soloFee)})`
     ])
   ]);
 
