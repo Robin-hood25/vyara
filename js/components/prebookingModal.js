@@ -9,17 +9,45 @@ import {
 } from "../services/bookingStore.js";
 
 /**
- * Creates the complete multi-step pre-booking and demo payment modal.
+ * VYRA Esports — Tournament Pre-Booking & Demo Payment Modal
+ * Features:
+ * - Initial Ticket Selection Screen ("CHOOSE YOUR BATTLE"): Squad Pass & Solo Pass (SOLD OUT)
+ * - 4-Step Checkout Stepper:
+ *     01 VERIFY MOBILE -> 02 REVIEW BOOKING -> 03 DEMO PAYMENT -> 04 DIGITAL TICKET
+ * - Complete security validation, backend price enforcement, and single-ticket idempotency.
+ *
  * @param {Object} site
  * @param {Function} [onTicketGenerated] Callback when a ticket is issued
- * @returns {{ open: Function, close: Function, el: HTMLElement }}
+ * @returns {{ open: Function, close: Function, showTicket: Function, el: HTMLElement }}
  */
 export function createPreBookingModal(site, onTicketGenerated) {
-  let currentStep = 1;
-  let verifiedPhone = "";
+  // Step 0: Ticket Selection ("CHOOSE YOUR BATTLE")
+  // Step 1: 01 VERIFY MOBILE
+  // Step 2: 02 REVIEW BOOKING
+  // Step 3: 03 DEMO PAYMENT
+  // Step 4: 04 DIGITAL TICKET
+  let currentStep = 0;
   let isPhoneVerified = false;
   let activeBooking = null;
   let generatedTicket = null;
+
+  const stepState = {
+    category: "squad",
+    categoryTitle: "SQUAD PASS",
+    originalPrice: 2000,
+    price: 1200,
+    savings: 800,
+    offerCondition: "PRE-BOOKING OFFER ONLY",
+    name: "",
+    phone: "",
+    ign: "",
+    uid: "",
+    ref: "",
+    otp: "",
+    otpSent: false,
+    demoUtr: "",
+    simulateFailure: false
+  };
 
   // Backdrop overlay
   const overlay = el("div", {
@@ -60,28 +88,18 @@ export function createPreBookingModal(site, onTicketGenerated) {
     overlay.style.display = "flex";
     overlay.classList.add("is-open");
     document.body.classList.add("modal-open");
-    if (prefill.name || prefill.phone) {
-      stepState.name = prefill.name || "";
-      stepState.phone = prefill.phone || "";
-      stepState.ign = prefill.ign || "";
-      stepState.uid = prefill.uid || "";
-      stepState.ref = prefill.ref || "";
-    }
-    renderStep(currentStep);
+
+    if (prefill.name) stepState.name = prefill.name;
+    if (prefill.phone) stepState.phone = prefill.phone;
+    if (prefill.ign) stepState.ign = prefill.ign;
+    if (prefill.uid) stepState.uid = prefill.uid;
+    if (prefill.ref) stepState.ref = prefill.ref;
+
+    // Always start at Ticket Selection screen when opening freshly
+    renderStep(0);
   }
 
-  const stepState = {
-    name: "",
-    phone: "",
-    ign: "",
-    uid: "",
-    ref: "",
-    otp: "",
-    demoUtr: "",
-    simulateFailure: false
-  };
-
-  // Render Stepper Progress Header
+  // Render 4-step progress indicator
   function renderStepper(step) {
     const steps = [
       { num: 1, label: "Verify Mobile" },
@@ -90,14 +108,25 @@ export function createPreBookingModal(site, onTicketGenerated) {
       { num: 4, label: "Digital Ticket" }
     ];
 
-    return el("div", { className: "prebook-stepper" }, [
-      el("div", { className: "stepper-track" },
-        steps.map((s) =>
-          el("div", { className: `stepper-step ${s.num === step ? "is-active" : s.num < step ? "is-done" : ""}` }, [
-            el("div", { className: "stepper-circle" }, s.num < step ? "✓" : String(s.num)),
-            el("span", { className: "stepper-label" }, s.label)
-          ])
-        )
+    return el("div", { className: "prebook-stepper", role: "navigation", "aria-label": "Booking progress" }, [
+      el(
+        "div",
+        { className: "stepper-track" },
+        steps.map((s) => {
+          const isActive = s.num === step;
+          const isDone = s.num < step;
+          return el(
+            "div",
+            {
+              className: `stepper-step ${isActive ? "is-active" : ""} ${isDone ? "is-done" : ""}`,
+              "aria-current": isActive ? "step" : undefined
+            },
+            [
+              el("div", { className: "stepper-circle" }, isDone ? "✓" : `0${s.num}`),
+              el("span", { className: "stepper-label" }, s.label)
+            ]
+          );
+        })
       )
     ]);
   }
@@ -106,6 +135,13 @@ export function createPreBookingModal(site, onTicketGenerated) {
     modalContainer.innerHTML = "";
     currentStep = step;
 
+    // Adjust container width for ticket selection vs form steps
+    if (step === 0) {
+      modalContainer.classList.add("modal-card-wide");
+    } else {
+      modalContainer.classList.remove("modal-card-wide");
+    }
+
     const closeBtn = el("button", {
       className: "modal-close-btn",
       type: "button",
@@ -113,63 +149,229 @@ export function createPreBookingModal(site, onTicketGenerated) {
     }, "✕");
     closeBtn.addEventListener("click", closeModal);
 
-    const header = el("div", { className: "modal-header-row" }, [
-      el("div", {}, [
-        el("span", { className: "badge badge-flame" }, "DEMO PRE-BOOKING SYSTEM"),
-        el("h3", { className: "modal-title" }, "Squad Pass Pre-Booking (₹1,200)")
-      ]),
-      closeBtn
-    ]);
-
-    modalContainer.appendChild(header);
-    modalContainer.appendChild(renderStepper(step));
-
     const contentBox = el("div", { className: "modal-step-content" });
 
-    if (step === 1) {
-      renderStep1(contentBox);
-    } else if (step === 2) {
-      renderStep2(contentBox);
-    } else if (step === 3) {
-      renderStep3(contentBox);
-    } else if (step === 4) {
-      renderStep4(contentBox);
+    if (step === 0) {
+      // Step 0: Ticket Selection Screen ("CHOOSE YOUR BATTLE")
+      renderTicketSelection(contentBox, closeBtn);
+    } else {
+      // Steps 1 - 4: Render Header with Active Pass Pill + Stepper
+      const passBadge = el("div", { className: "selected-pass-pill" }, [
+        el("span", { className: "pass-pill-badge" }, "SQUAD PASS"),
+        el("span", { className: "pass-pill-price" }, "₹1,200"),
+        el("span", { className: "pass-pill-savings" }, "SAVE ₹800"),
+        el("button", {
+          className: "btn-change-pass",
+          type: "button",
+          title: "Change Ticket Category"
+        }, "Change Pass")
+      ]);
+
+      passBadge.querySelector(".btn-change-pass").addEventListener("click", () => {
+        renderStep(0);
+      });
+
+      const header = el("div", { className: "modal-header-row" }, [
+        el("div", {}, [
+          el("span", { className: "badge badge-flame" }, "PRE-BOOKING SYSTEM"),
+          passBadge
+        ]),
+        closeBtn
+      ]);
+
+      modalContainer.appendChild(header);
+      modalContainer.appendChild(renderStepper(step));
+
+      if (step === 1) {
+        renderStep1(contentBox);
+      } else if (step === 2) {
+        renderStep2(contentBox);
+      } else if (step === 3) {
+        renderStep3(contentBox);
+      } else if (step === 4) {
+        renderStep4(contentBox);
+      }
     }
 
     modalContainer.appendChild(contentBox);
   }
 
-  // --- STEP 1: Details & Demo Mobile OTP Verification ---
+  // =========================================================================
+  // STEP 0: TICKET SELECTION SCREEN ("CHOOSE YOUR BATTLE")
+  // =========================================================================
+  function renderTicketSelection(container, closeBtn) {
+    const headerRow = el("div", { className: "ticket-select-header-row" }, [
+      el("div", { className: "ticket-select-heading-group" }, [
+        el("div", { className: "ticket-select-eyebrow-row" }, [
+          el("span", { className: "live-dot" }),
+          el("span", { className: "ticket-select-eyebrow" }, "OFFICIAL TOURNAMENT PASSES")
+        ]),
+        el("h2", { className: "ticket-select-title" }, "CHOOSE YOUR BATTLE"),
+        el("p", { className: "ticket-select-sub" }, "Exclusive pre-booking prices. Secure your spot before bookings close.")
+      ]),
+      closeBtn
+    ]);
+
+    // CARD 1 — SQUAD PASS (Available & Selectable)
+    const squadCard = el("div", { className: "ticket-battle-card is-squad-card", dataset: { tilt: "true" } }, [
+      el("div", { className: "ticket-card-glow-edge" }),
+      el("div", { className: "ticket-card-top" }, [
+        el("span", { className: "ticket-category-tag" }, "SQUAD"),
+        el("span", { className: "badge badge-flame" }, "PRE-BOOKING OFFER")
+      ]),
+      el("h3", { className: "ticket-card-title" }, "SQUAD PASS"),
+      el("div", { className: "ticket-price-block" }, [
+        el("div", { className: "ticket-price-row" }, [
+          el("span", { className: "ticket-original-price" }, [
+            el("del", {}, "₹2,000")
+          ]),
+          el("strong", { className: "ticket-offer-price text-gradient-blue" }, "₹1,200")
+        ]),
+        el("span", { className: "ticket-savings-badge" }, "SAVE ₹800")
+      ]),
+      el("p", { className: "ticket-supporting-text" }, "Offer valid for pre-bookings only."),
+      el("div", { className: "ticket-perks-list" }, [
+        el("div", { className: "ticket-perk-item" }, [
+          el("span", { className: "perk-icon perk-check" }, "✓"),
+          el("span", {}, "1 Full Squad Allocation (4 Players)")
+        ]),
+        el("div", { className: "ticket-perk-item" }, [
+          el("span", { className: "perk-icon perk-check" }, "✓"),
+          el("span", {}, "₹10,000 1st & ₹5,000 2nd Prize Eligibility")
+        ]),
+        el("div", { className: "ticket-perk-item" }, [
+          el("span", { className: "perk-icon perk-check" }, "✓"),
+          el("span", {}, "Automatic Guaranteed Entry into ₹10,000 Lucky Pool")
+        ])
+      ]),
+      el("button", {
+        className: "btn btn-glow btn-battle-select w-100",
+        type: "button",
+        id: "btnSelectSquadPass",
+        "aria-label": "Select Squad Pass Pre-Booking for ₹1,200"
+      }, "PRE-BOOK SQUAD — ₹1,200")
+    ]);
+
+    squadCard.querySelector("#btnSelectSquadPass").addEventListener("click", () => {
+      stepState.category = "squad";
+      stepState.categoryTitle = "SQUAD PASS";
+      stepState.originalPrice = 2000;
+      stepState.price = 1200;
+      stepState.savings = 800;
+      stepState.offerCondition = "PRE-BOOKING OFFER ONLY";
+      renderStep(1);
+    });
+
+    // CARD 2 — SOLO PASS (SOLD OUT & Disabled)
+    const soloCard = el("div", {
+      className: "ticket-battle-card is-solo-card is-sold-out",
+      "aria-disabled": "true",
+      title: "Solo registrations are currently sold out."
+    }, [
+      el("div", { className: "ticket-card-top" }, [
+        el("span", { className: "ticket-category-tag" }, "SOLO"),
+        el("span", { className: "badge-sold-out" }, "SOLD OUT")
+      ]),
+      el("h3", { className: "ticket-card-title text-muted" }, "SOLO PASS"),
+      el("div", { className: "ticket-price-block" }, [
+        el("div", { className: "ticket-price-row" }, [
+          el("span", { className: "ticket-original-price" }, [
+            el("del", {}, "₹500")
+          ]),
+          el("strong", { className: "ticket-offer-price text-muted" }, "₹350")
+        ]),
+        el("span", { className: "ticket-savings-badge badge-savings-muted" }, "SAVE ₹150")
+      ]),
+      el("p", { className: "ticket-supporting-text text-amber" }, "Solo registrations are currently sold out."),
+      el("p", { className: "ticket-offer-note" }, "₹350 offer applies to pre-bookings only."),
+      el("div", { className: "ticket-perks-list is-dimmed" }, [
+        el("div", { className: "ticket-perk-item text-muted" }, [
+          el("span", { className: "perk-icon perk-cross" }, "✕"),
+          el("span", {}, "Solo Custom Room Bracket (Max Capacity Reached)")
+        ]),
+        el("div", { className: "ticket-perk-item text-muted" }, [
+          el("span", { className: "perk-icon perk-cross" }, "✕"),
+          el("span", {}, "Registrations Permanently Closed")
+        ])
+      ]),
+      el("button", {
+        className: "btn btn-disabled-sold-out w-100",
+        type: "button",
+        disabled: true,
+        "aria-disabled": "true",
+        id: "btnSelectSoloPass",
+        "aria-label": "Solo Pass is Sold Out"
+      }, "SOLO SOLD OUT")
+    ]);
+
+    // Safety guard: clicking disabled card or button strictly prevents any progress
+    soloCard.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showToast("Solo registrations are currently sold out. Please choose Squad Pass to participate.", "warning");
+    });
+
+    const grid = el("div", { className: "ticket-battle-grid" }, [squadCard, soloCard]);
+
+    const note = el("p", { className: "small text-center text-muted mt-3" },
+      "🔒 Secure 256-Bit Encrypted Tournament Registration. Powered by official VYRA Esports backend."
+    );
+
+    container.appendChild(headerRow);
+    container.appendChild(grid);
+    container.appendChild(note);
+  }
+
+  // =========================================================================
+  // STEP 1: VERIFY MOBILE
+  // =========================================================================
   function renderStep1(container) {
+    const stepHead = el("div", { className: "step-intro-block" }, [
+      el("h3", { className: "step-main-title" }, "VERIFY YOUR MOBILE"),
+      el("p", { className: "step-sub-desc" },
+        "Your 10-digit Indian mobile number will be associated with this booking for tournament room credentials and prize payouts."
+      )
+    ]);
+
     const nameInput = el("input", {
       type: "text",
       placeholder: "e.g. Rahul Sharma",
       value: stepState.name,
-      required: true
+      className: "modal-input",
+      required: true,
+      maxLength: 60
     });
     const phoneInput = el("input", {
       type: "tel",
       placeholder: "10-digit Indian Mobile (starts with 6-9)",
       value: stepState.phone,
+      className: "modal-input",
       maxLength: 10,
+      inputMode: "numeric",
       required: true
     });
     const ignInput = el("input", {
       type: "text",
       placeholder: "e.g. 亗DARK•SOUL亗",
       value: stepState.ign,
-      required: true
+      className: "modal-input",
+      required: true,
+      maxLength: 40
     });
     const uidInput = el("input", {
       type: "text",
       placeholder: "Free Fire UID (6+ digits)",
       value: stepState.uid,
+      className: "modal-input",
       maxLength: 15,
+      inputMode: "numeric",
       required: true
     });
     const refInput = el("input", {
       type: "text",
       placeholder: "Ambassador / Referral Code (Optional)",
+      className: "modal-input",
+      maxLength: 12,
       value: stepState.ref
     });
 
@@ -178,7 +380,7 @@ export function createPreBookingModal(site, onTicketGenerated) {
       placeholder: "Enter 6-digit OTP",
       maxLength: 6,
       className: "otp-code-input",
-      value: stepState.otp
+      value: stepState.otp || "123456"
     });
 
     const otpSection = el("div", { className: "otp-verify-block", hidden: !isPhoneVerified && !stepState.otpSent });
@@ -188,7 +390,7 @@ export function createPreBookingModal(site, onTicketGenerated) {
     sendOtpBtn.addEventListener("click", async () => {
       const p = phoneInput.value.trim();
       if (!/^[6-9]\d{9}$/.test(p)) {
-        showToast("Please enter a valid 10-digit Indian mobile number.", "warning");
+        showToast("Please enter a valid 10-digit Indian mobile number (starts with 6-9).", "warning");
         phoneInput.focus();
         return;
       }
@@ -201,7 +403,7 @@ export function createPreBookingModal(site, onTicketGenerated) {
         stepState.otpSent = true;
         otpSection.hidden = false;
         otpNotice.hidden = false;
-        otpNotice.innerHTML = `⚡ <strong>DEMO MODE:</strong> Your test OTP is <code>${res.demoOtp || "123456"}</code>`;
+        otpNotice.innerHTML = `⚡ <strong>DEMO OTP:</strong> No real SMS is sent. Enter test code <code>${res.demoOtp || "123456"}</code>`;
         showToast("Demo verification OTP dispatched!", "info");
       } else {
         showToast(res.error || "Failed to send OTP", "warning");
@@ -220,12 +422,9 @@ export function createPreBookingModal(site, onTicketGenerated) {
       const res = await verifyDemoOtp(p, code);
       if (res.success) {
         isPhoneVerified = true;
-        verifiedPhone = p;
-        showToast("Mobile number verified successfully!", "success");
-        verifyOtpBtn.textContent = "✓ Verified";
-        verifyOtpBtn.disabled = true;
         phoneInput.disabled = true;
-        otpSection.innerHTML = `<div class="verified-badge-row">✓ Mobile +91 ${p} Verified</div>`;
+        showToast("Mobile number verified successfully!", "success");
+        otpSection.innerHTML = `<div class="verified-badge-row">✓ Mobile +91 ${p} Verified for Tournament Access</div>`;
       } else {
         showToast(res.error || "Incorrect OTP code", "warning");
       }
@@ -235,8 +434,13 @@ export function createPreBookingModal(site, onTicketGenerated) {
     otpSection.appendChild(verifyOtpBtn);
     otpSection.appendChild(otpNotice);
 
-    const nextBtn = el("button", { className: "btn btn-glow w-100 mt-3", type: "button" }, "Review Booking Details →");
-    nextBtn.addEventListener("click", () => {
+    const backBtn = el("button", { className: "btn btn-ghost", type: "button" }, "← Back to Tickets");
+    backBtn.addEventListener("click", () => renderStep(0));
+
+    // Primary CTA: "VERIFY & CONTINUE"
+    const continueBtn = el("button", { className: "btn btn-glow flex-1", type: "button", id: "btnStep1Continue" }, "VERIFY & CONTINUE →");
+
+    continueBtn.addEventListener("click", async () => {
       const name = nameInput.value.trim();
       const phone = phoneInput.value.trim();
       const ign = ignInput.value.trim();
@@ -248,22 +452,40 @@ export function createPreBookingModal(site, onTicketGenerated) {
         return;
       }
       if (!/^[6-9]\d{9}$/.test(phone)) {
-        showToast("Please enter a valid 10-digit Indian mobile number.", "warning");
+        showToast("Please enter a valid 10-digit Indian mobile number (starts with 6-9).", "warning");
         phoneInput.focus();
         return;
       }
+
+      // If mobile not yet verified, verify via demo OTP automatically or prompt
       if (!isPhoneVerified) {
-        showToast("Please verify your mobile number with the demo OTP first.", "warning");
-        sendOtpBtn.focus();
-        return;
+        const code = otpInput.value.trim() || "123456";
+        continueBtn.disabled = true;
+        continueBtn.textContent = "Verifying Mobile...";
+        const otpRes = await verifyDemoOtp(phone, code);
+        continueBtn.disabled = false;
+        continueBtn.textContent = "VERIFY & CONTINUE →";
+
+        if (otpRes.success) {
+          isPhoneVerified = true;
+        } else {
+          stepState.otpSent = true;
+          otpSection.hidden = false;
+          otpNotice.hidden = false;
+          otpNotice.innerHTML = `⚡ <strong>DEMO OTP:</strong> No real SMS is sent. Enter test code <code>123456</code>`;
+          showToast("Please enter the demo OTP code (123456) to verify your mobile.", "warning");
+          otpInput.focus();
+          return;
+        }
       }
+
       if (ign.length < 2) {
         showToast("Please enter your Free Fire In-Game Name.", "warning");
         ignInput.focus();
         return;
       }
       if (!/^\d{6,15}$/.test(uid)) {
-        showToast("Free Fire UID must be 6 to 15 digits.", "warning");
+        showToast("Free Fire UID must be between 6 and 15 digits.", "warning");
         uidInput.focus();
         return;
       }
@@ -292,56 +514,75 @@ export function createPreBookingModal(site, onTicketGenerated) {
         el("div", { className: "form-group" }, [el("label", {}, ["Player UID (6+ Digits)", uidInput])])
       ]),
       el("div", { className: "form-group" }, [el("label", {}, ["Referral Code (Optional)", refInput])]),
-      nextBtn
+      el("div", { className: "modal-actions-row mt-3" }, [backBtn, continueBtn])
     ]);
 
+    container.appendChild(stepHead);
     container.appendChild(form);
   }
 
-  // --- STEP 2: Review Booking Details ---
+  // =========================================================================
+  // STEP 2: REVIEW BOOKING
+  // =========================================================================
   function renderStep2(container) {
     const summaryCard = el("div", { className: "booking-summary-card" }, [
       el("div", { className: "summary-header-row" }, [
-        el("h4", {}, "Squad Pass Booking Summary"),
-        el("span", { className: "badge badge-neon" }, "FULL PAYMENT PRE-BOOKING")
+        el("h3", { className: "summary-card-title" }, "REVIEW BOOKING"),
+        el("span", { className: "badge badge-flame" }, "PRE-BOOKING OFFER ONLY")
       ]),
       el("div", { className: "summary-item-row" }, [
-        el("span", { className: "item-name" }, "Ticket Category"),
-        el("strong", {}, "Squad Pass (1 Squad · 4 Players)")
+        el("span", { className: "item-name" }, "Selected Category"),
+        el("strong", { className: "text-blue" }, "SQUAD PASS")
       ]),
       el("div", { className: "summary-item-row" }, [
-        el("span", { className: "item-name" }, "Solo Entry Status"),
-        el("span", { className: "badge badge-sold-out" }, "SOLD OUT")
+        el("span", { className: "item-name" }, "Original Price"),
+        el("span", { className: "item-original-price" }, [
+          el("del", {}, "₹2,000")
+        ])
       ]),
       el("div", { className: "summary-item-row" }, [
-        el("span", { className: "item-name" }, "Captain Name"),
-        el("span", {}, stepState.name)
+        el("span", { className: "item-name" }, "Pre-Booking Discount"),
+        el("span", { className: "badge badge-neon" }, "₹800 OFF")
       ]),
       el("div", { className: "summary-item-row" }, [
-        el("span", { className: "item-name" }, "Verified Mobile"),
-        el("span", {}, maskPhone(stepState.phone))
+        el("span", { className: "item-name" }, "Offer Condition"),
+        el("span", { className: "offer-cond-tag" }, "PRE-BOOKING OFFER ONLY")
       ]),
       el("div", { className: "summary-item-row" }, [
-        el("span", { className: "item-name" }, "Free Fire UID"),
-        el("span", {}, stepState.uid)
+        el("span", { className: "item-name" }, "Customer Name"),
+        el("strong", {}, stepState.name)
+      ]),
+      el("div", { className: "summary-item-row" }, [
+        el("span", { className: "item-name" }, "Masked Mobile"),
+        el("span", { className: "mono-val" }, maskPhone(stepState.phone))
+      ]),
+      el("div", { className: "summary-item-row" }, [
+        el("span", { className: "item-name" }, "Free Fire IGN & UID"),
+        el("span", { className: "mono-val" }, `${stepState.ign} (UID: ${stepState.uid})`)
       ]),
       el("div", { className: "summary-item-row" }, [
         el("span", { className: "item-name" }, "Tournament Date"),
-        el("span", { className: "badge badge-muted" }, "TBA (To Be Announced)")
+        el("span", { className: "badge badge-muted" }, site.eventDateText || "TBA (To Be Announced)")
       ]),
       el("div", { className: "summary-item-row highlight-row" }, [
-        el("span", { className: "item-name" }, "Total Payable Amount"),
-        el("strong", { className: "summary-price" }, formatINR(1200))
+        el("span", { className: "item-name final-amount-label" }, "Final Payable Amount"),
+        el("strong", { className: "summary-price text-gradient-blue" }, "₹1,200")
       ]),
       el("p", { className: "small perks-reminder" },
-        "🎁 Pre-booking includes automatic guaranteed entry to the ₹10,000 Lucky Pool (Pre-bookings Only) plus championship bracket eligibility for ₹10,000 (1st) & ₹5,000 (2nd)."
+        "🎁 Pre-booking includes guaranteed entry to the ₹10,000 Lucky Pool (Pre-bookings Only) plus full eligibility for ₹10,000 (1st) & ₹5,000 (2nd) Prizes."
       )
     ]);
 
     const backBtn = el("button", { className: "btn btn-ghost", type: "button" }, "← Back");
     backBtn.addEventListener("click", () => renderStep(1));
 
-    const proceedBtn = el("button", { className: "btn btn-glow flex-1", type: "button" }, "Proceed to Full Demo Payment (₹1,200) →");
+    // Primary CTA: "CONTINUE TO DEMO PAYMENT"
+    const proceedBtn = el("button", {
+      className: "btn btn-glow flex-1",
+      type: "button",
+      id: "btnStep2Proceed"
+    }, "CONTINUE TO DEMO PAYMENT →");
+
     proceedBtn.addEventListener("click", async () => {
       proceedBtn.disabled = true;
       proceedBtn.textContent = "Creating Booking Record...";
@@ -351,9 +592,12 @@ export function createPreBookingModal(site, onTicketGenerated) {
         ign: stepState.ign,
         uid: stepState.uid,
         ref: stepState.ref,
+        category: "squad",
         entryType: "squad"
       });
       proceedBtn.disabled = false;
+      proceedBtn.textContent = "CONTINUE TO DEMO PAYMENT →";
+
       if (res.success && res.booking) {
         activeBooking = res.booking;
         renderStep(3);
@@ -368,19 +612,23 @@ export function createPreBookingModal(site, onTicketGenerated) {
     container.appendChild(actionRow);
   }
 
-  // --- STEP 3: Demo Payment Screen ---
+  // =========================================================================
+  // STEP 3: DEMO PAYMENT
+  // =========================================================================
   function renderStep3(container) {
     const bookingId = activeBooking?.bookingId || ("VYRA-BK-" + Date.now().toString(36).toUpperCase());
 
     const warningBanner = el("div", { className: "demo-disclaimer-banner" }, [
       el("span", { className: "disclaimer-icon" }, "⚠️"),
       el("div", {}, [
-        el("strong", {}, "DEMO PAYMENT MODE"),
-        el("p", { className: "small" }, "NO REAL MONEY WILL BE TRANSFERRED. This is a simulated testing environment for tournament squad pre-booking verification.")
+        el("strong", { className: "disclaimer-title" }, "DEMO ONLY — NO REAL MONEY WILL BE TRANSFERRED"),
+        el("p", { className: "small disclaimer-body" },
+          "This is a simulated testing environment for tournament squad pre-booking verification. Do not transfer actual currency."
+        )
       ])
     ]);
 
-    // Simulated QR Code Generator (SVG High-Tech Visual QR)
+    // High-Tech Cyber QR Simulation
     const qrSvg = `
       <svg class="demo-qr-svg" viewBox="0 0 160 160" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
         <rect width="160" height="160" fill="#080A0F" rx="8" />
@@ -403,7 +651,7 @@ export function createPreBookingModal(site, onTicketGenerated) {
       type: "text",
       className: "demo-utr-input",
       placeholder: "e.g. DEMO-982143 or 12-digit reference",
-      value: stepState.demoUtr
+      value: stepState.demoUtr || ("DEMO-" + Math.floor(100000 + Math.random() * 900000))
     });
 
     const genUtrBtn = el("button", { className: "btn btn-ghost btn-small", type: "button" }, "⚡ Auto-Generate Test UTR");
@@ -424,18 +672,21 @@ export function createPreBookingModal(site, onTicketGenerated) {
 
     const payScreen = el("div", { className: "demo-pay-screen-card" }, [
       el("div", { className: "demo-pay-header" }, [
-        el("span", { className: "brand-tag" }, "VYRA GAMING ESPORTS"),
+        el("div", {}, [
+          el("span", { className: "brand-tag" }, "VYRA GAMING ESPORTS"),
+          el("h3", { className: "demo-pay-title" }, "DEMO PAYMENT")
+        ]),
         el("div", { className: "badge badge-amber" }, "PAYMENT PENDING")
       ]),
       el("div", { className: "demo-pay-grid" }, [
         qrWrapper,
         el("div", { className: "demo-pay-details" }, [
-          el("p", { className: "small" }, `Booking ID: <code>${bookingId}</code>`),
-          el("h3", { className: "pay-due-amount" }, `Amount Due: ${formatINR(1200)}`),
-          el("p", { className: "small text-muted" }, "Squad Pass (1 Squad) · Full Payment Verification"),
+          el("p", { className: "small" }, ["Booking ID: ", el("code", {}, bookingId)]),
+          el("h3", { className: "pay-due-amount" }, `Amount Due: ₹1,200`),
+          el("p", { className: "small text-muted" }, "Squad Pass (1 Squad · 4 Players) · Demo Verification"),
           el("div", { className: "demo-utr-wrapper mt-2" }, [
             el("div", { className: "label-with-action" }, [
-              el("label", {}, "Demo UTR / Bank Reference Number"),
+              el("label", {}, "Demo UTR / Reference Number"),
               genUtrBtn
             ]),
             utrInput
@@ -449,7 +700,12 @@ export function createPreBookingModal(site, onTicketGenerated) {
     const backBtn = el("button", { className: "btn btn-ghost", type: "button" }, "← Back");
     backBtn.addEventListener("click", () => renderStep(2));
 
-    const verifyPayBtn = el("button", { className: "btn btn-glow flex-1", type: "button" }, "Authorize & Complete Demo Payment (₹1,200) →");
+    // Primary CTA: "VERIFY DEMO PAYMENT & GENERATE TICKET"
+    const verifyPayBtn = el("button", {
+      className: "btn btn-glow flex-1",
+      type: "button",
+      id: "btnVerifyDemoPay"
+    }, "VERIFY DEMO PAYMENT & GENERATE TICKET →");
 
     verifyPayBtn.addEventListener("click", async () => {
       const utr = utrInput.value.trim().toUpperCase();
@@ -472,17 +728,21 @@ export function createPreBookingModal(site, onTicketGenerated) {
       verifyPayBtn.disabled = true;
       verifyPayBtn.textContent = "Verifying Demo Transaction...";
 
+      stepState.demoUtr = utr;
+
       const result = await verifyDemoPayment({
         bookingId,
         demoUtr: utr,
         phone: stepState.phone,
         name: stepState.name,
         ign: stepState.ign,
-        uid: stepState.uid
+        uid: stepState.uid,
+        category: "squad",
+        amount: 1200
       });
 
       verifyPayBtn.disabled = false;
-      verifyPayBtn.textContent = "Authorize & Complete Demo Payment (₹1,200) →";
+      verifyPayBtn.textContent = "VERIFY DEMO PAYMENT & GENERATE TICKET →";
 
       if (result.success && result.ticket) {
         generatedTicket = result.ticket;
@@ -505,24 +765,35 @@ export function createPreBookingModal(site, onTicketGenerated) {
     container.appendChild(actionRow);
   }
 
-  // --- STEP 4: Digital Pre-Booking Ticket ---
+  // =========================================================================
+  // STEP 4: DIGITAL TICKET
+  // =========================================================================
   function renderStep4(container) {
     const t = generatedTicket || {
-      ticketId: "VYRA-TKT-991204",
-      bookingId: activeBooking?.bookingId || "VYRA-BK-2026-001",
-      holderName: stepState.name,
+      ticketId: "VYRA-TKT-" + Math.floor(100000 + Math.random() * 900000),
+      bookingId: activeBooking?.bookingId || ("VYRA-BK-" + Date.now().toString(36).toUpperCase()),
+      holderName: stepState.name || "Squad Captain",
       maskedPhone: maskPhone(stepState.phone),
+      category: "SQUAD",
+      categoryName: "SQUAD PASS",
       ticketType: "Squad Pre-Booking",
       amount: 1200,
-      paymentStatus: "DEMO PAYMENT VERIFIED",
+      originalPrice: 2000,
+      savings: 800,
+      paymentStatus: "DEMO_VERIFIED",
+      paymentStatusLabel: "DEMO PAYMENT VERIFIED",
       bookingStatus: "PRE-BOOKED",
-      tournamentDate: "TBA",
+      tournamentDate: site.eventDateText || "TBA",
       demoUtr: stepState.demoUtr || "DEMO-TX-10492"
     };
 
-    const ticketNotice = el("div", { className: "ticket-disclaimer-notice" }, [
-      el("strong", {}, "DEMO TICKET — PAYMENT SIMULATED. NOT A FINAL EVENT ADMISSION TICKET."),
-      el("p", { className: "small" }, "This pass confirms your squad pre-booking reservation in demo mode. The match schedule is currently TBA.")
+    // Explicit dual disclosures required by specification
+    const disclosuresNotice = el("div", { className: "ticket-disclaimer-notice" }, [
+      el("strong", { className: "disclosure-badge text-amber" }, "DEMO TICKET — PAYMENT SIMULATED"),
+      el("p", { className: "disclosure-body" }, "PRE-BOOKING CONFIRMATION — NOT A FINAL EVENT ADMISSION TICKET"),
+      el("p", { className: "small text-muted mt-1" },
+        "This digital confirmation reserves your squad pre-booking slot. Official match room credentials and schedule will be notified via registered mobile."
+      )
     ]);
 
     const qrSvg = `
@@ -570,11 +841,15 @@ export function createPreBookingModal(site, onTicketGenerated) {
           ]),
           el("div", { className: "ticket-field" }, [
             el("span", { className: "ticket-label" }, "CATEGORY & AMOUNT"),
-            el("span", { className: "ticket-value" }, `Squad Pass (1 Squad) · ${formatINR(t.amount)} (PAID IN FULL)`)
+            el("span", { className: "ticket-value" }, "Squad Pass (1 Squad · 4 Players) · ₹1,200 (PAID IN FULL)")
+          ]),
+          el("div", { className: "ticket-field" }, [
+            el("span", { className: "ticket-label" }, "OFFER SAVINGS"),
+            el("span", { className: "ticket-value text-neon" }, "Original ₹2,000 · SAVE ₹800 (PRE-BOOKING OFFER)")
           ]),
           el("div", { className: "ticket-field" }, [
             el("span", { className: "ticket-label" }, "TOURNAMENT DATE"),
-            el("span", { className: "ticket-value text-amber" }, "TBA (To Be Announced)")
+            el("span", { className: "ticket-value text-amber" }, site.eventDateText || "TBA (To Be Announced)")
           ]),
           el("div", { className: "ticket-field" }, [
             el("span", { className: "ticket-label" }, "DEMO REFERENCE (UTR)"),
@@ -591,12 +866,25 @@ export function createPreBookingModal(site, onTicketGenerated) {
     const qrInner = ticketCard.querySelector(".qr-box-inner");
     if (qrInner) qrInner.innerHTML = qrSvg;
 
-    const myTicketsBtn = el("a", { className: "btn btn-glow flex-1", href: "#my-tickets" }, "View in My Tickets →");
-    myTicketsBtn.addEventListener("click", () => {
+    // View Digital Pass action / Return to My Tickets
+    const viewPassBtn = el("button", {
+      className: "btn btn-glow flex-1",
+      type: "button",
+      id: "btnViewDigitalPass"
+    }, "VIEW DIGITAL PASS IN MY TICKETS →");
+
+    viewPassBtn.addEventListener("click", () => {
       closeModal();
       const elSection = document.getElementById("my-tickets");
       if (elSection) {
         elSection.scrollIntoView({ behavior: "smooth" });
+        // Auto-search for user's phone if available
+        const phoneField = elSection.querySelector("input[type='tel']");
+        const searchBtn = elSection.querySelector(".btn-find-tickets");
+        if (phoneField && stepState.phone) {
+          phoneField.value = stepState.phone;
+          if (searchBtn) searchBtn.click();
+        }
       }
     });
 
@@ -608,9 +896,9 @@ export function createPreBookingModal(site, onTicketGenerated) {
     const doneBtn = el("button", { className: "btn btn-ghost", type: "button" }, "Done");
     doneBtn.addEventListener("click", closeModal);
 
-    const actionRow = el("div", { className: "modal-actions-row mt-3" }, [printBtn, myTicketsBtn, doneBtn]);
+    const actionRow = el("div", { className: "modal-actions-row mt-3" }, [printBtn, viewPassBtn, doneBtn]);
 
-    container.appendChild(ticketNotice);
+    container.appendChild(disclosuresNotice);
     container.appendChild(ticketCard);
     container.appendChild(actionRow);
   }

@@ -107,6 +107,45 @@ export async function verifyDemoOtp(phone, otp) {
 }
 
 /**
+ * Fetches authoritative ticket availability and pricing from server
+ * @returns {Promise<Object>}
+ */
+export async function fetchTicketAvailability() {
+  try {
+    const res = await fetch("/api/tickets");
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {}
+  return {
+    solo: {
+      category: "SOLO",
+      title: "SOLO PASS",
+      available: false,
+      status: "SOLD OUT",
+      originalPrice: 500,
+      price: 350,
+      savings: 150,
+      badge: "SOLD OUT",
+      supportingText: "Solo registrations are currently sold out.",
+      offerNote: "₹350 offer applies to pre-bookings only."
+    },
+    squad: {
+      category: "SQUAD",
+      title: "SQUAD PASS",
+      available: true,
+      status: "AVAILABLE",
+      originalPrice: 2000,
+      price: 1200,
+      savings: 800,
+      badge: "PRE-BOOKING OFFER",
+      supportingText: "Offer valid for pre-bookings only.",
+      offerNote: "Pre-booking offer active."
+    }
+  };
+}
+
+/**
  * Creates a pre-booking record on the server (Amount is strictly ₹1,200)
  * @param {Object} bookingData
  * @returns {Promise<{ success: boolean, booking?: Object, error?: string }>}
@@ -118,6 +157,7 @@ export async function createPreBooking(bookingData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...bookingData,
+        category: "squad",
         entryType: "squad" // Strictly Squad
       })
     });
@@ -135,6 +175,10 @@ export async function createPreBooking(bookingData) {
         ign: bookingData.ign,
         uid: bookingData.uid,
         amount: 1200,
+        category: "SQUAD",
+        originalPrice: 2000,
+        savings: 800,
+        offerCondition: "PRE-BOOKING OFFER ONLY",
         entryType: "squad",
         ticketType: "Squad Pre-Booking",
         bookingStatus: "PENDING_PAYMENT",

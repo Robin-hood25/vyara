@@ -117,8 +117,30 @@ export function handleRequest(req, res, options = {}) {
   if (pathname === "/api/tickets" || pathname === "/api/availability") {
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
     res.end(JSON.stringify({
-      solo: { available: false, status: "SOLD OUT", price: 350 },
-      squad: { available: true, status: "AVAILABLE", price: 1200 }
+      solo: {
+        category: "SOLO",
+        title: "SOLO PASS",
+        available: false,
+        status: "SOLD OUT",
+        originalPrice: 500,
+        price: 350,
+        savings: 150,
+        badge: "SOLD OUT",
+        supportingText: "Solo registrations are currently sold out.",
+        offerNote: "₹350 offer applies to pre-bookings only."
+      },
+      squad: {
+        category: "SQUAD",
+        title: "SQUAD PASS",
+        available: true,
+        status: "AVAILABLE",
+        originalPrice: 2000,
+        price: 1200,
+        savings: 800,
+        badge: "PRE-BOOKING OFFER",
+        supportingText: "Offer valid for pre-bookings only.",
+        offerNote: "Pre-booking offer active."
+      }
     }));
     return;
   }
@@ -305,6 +327,16 @@ export function handleRequest(req, res, options = {}) {
         demoBookings.set(booking.bookingId, booking);
       }
 
+      // Check if trying to process an unavailable category
+      if (booking.entryType === "solo" || booking.category === "SOLO") {
+        res.writeHead(409, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({
+          success: false,
+          error: "Solo registrations are SOLD OUT. Payment cannot be processed."
+        }));
+        return;
+      }
+
       // Check if already verified
       if (booking.paymentStatus === "DEMO_VERIFIED" && booking.ticketId) {
         const existingTicket = demoTickets.get(booking.ticketId);
@@ -338,13 +370,19 @@ export function handleRequest(req, res, options = {}) {
         holderName: booking.holderName,
         phone: booking.phone,
         maskedPhone,
+        category: "SQUAD",
+        categoryName: "SQUAD PASS",
         ticketType: "Squad Pre-Booking",
         amount: 1200,
-        paymentStatus: "DEMO PAYMENT VERIFIED",
+        originalPrice: 2000,
+        savings: 800,
+        offerCondition: "PRE-BOOKING OFFER ONLY",
+        paymentStatus: "DEMO_VERIFIED",
+        paymentStatusLabel: "DEMO PAYMENT VERIFIED",
         bookingStatus: "PRE-BOOKED",
         tournamentDate: "TBA",
         demoUtr: rawUtr,
-        notice: "DEMO TICKET — PAYMENT SIMULATED. NOT A FINAL EVENT ADMISSION TICKET.",
+        notice: "DEMO TICKET — PAYMENT SIMULATED. PRE-BOOKING CONFIRMATION — NOT A FINAL EVENT ADMISSION TICKET.",
         issuedAt: new Date().toISOString()
       };
 
