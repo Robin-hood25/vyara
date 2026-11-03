@@ -1,0 +1,22 @@
+{
+  "name": "vyara-freefire-championship",
+  "version": "1.0.0",
+  "description": "Free Fire Championship static and dynamic JS application with security checks",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/smoke.test.js && node tests/security.test.js",
+    "test:smoke": "node tests/smoke.test.js",
+    "test:security": "node tests/security.test.js"
+  },
+  "keywords": [
+    "freefire",
+    "tournament",
+    "championship",
+    "javascript"
+  ],
+  "author": "VYARA",
+  "license": "ISC"
+}
+
