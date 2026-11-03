@@ -255,6 +255,10 @@ export function createHero(site) {
     }
   });
 
+  // Interactive 3D Precision Core Centerpiece
+  const canvas3D = el("canvas", { className: "hero-3d-canvas", id: "hero3DCanvas" });
+  const canvasWrapper = el("div", { className: "canvas-3d-wrapper" }, [canvas3D]);
+
   // Hero Card with translucent frosted-glass finish so video is visible behind it too
   const heroCard = el(
     "div",
@@ -267,6 +271,7 @@ export function createHero(site) {
         ]),
         el("div", { className: "hero-ctrl-actions" }, [cinemaBtn, soundBtn])
       ]),
+      canvasWrapper,
       el("p", { className: "small text-uppercase tracking-wider mt-2" }, "Tournament Starts In"),
       countdown,
       heroMeta,
@@ -274,6 +279,10 @@ export function createHero(site) {
       telemetryFeatures
     ]
   );
+
+  setTimeout(() => {
+    initHero3DEngine(canvas3D);
+  }, 80);
 
   // The hero content grid
   const heroGrid = el("div", { className: "hero-content-grid wrap", id: "heroContentGrid" }, [
