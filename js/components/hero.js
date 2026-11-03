@@ -66,29 +66,12 @@ export function createHero(site) {
 
   const heroText = el("div", { className: "hero-text" }, [kicker, h1, telemetryBadges, ctaRow]);
 
-  // Countdown timer blocks (Preserving IDs for app.js)
-  const countdown = el("div", { className: "count", id: "countdown", role: "timer" }, [
-    el("div", { className: "count-box" }, [el("b", { id: "cd-d" }, "--"), el("span", {}, "days")]),
-    el("div", { className: "count-box" }, [el("b", { id: "cd-h" }, "--"), el("span", {}, "hours")]),
-    el("div", { className: "count-box" }, [el("b", { id: "cd-m" }, "--"), el("span", {}, "min")]),
-    el("div", { className: "count-box" }, [el("b", { id: "cd-s" }, "--"), el("span", {}, "sec")])
-  ]);
-
-  const dateText = site.eventDateText || "Grand Finals: Next Weekend";
-  const venueText = site.venue || "Custom Battle Royale Rooms (Mobile Only)";
-
-  const heroMeta = el("p", { className: "small hero-meta-text" }, [
-    el("span", { id: "heroDate" }, dateText),
-    " · ",
-    el("span", { id: "heroVenue" }, venueText)
-  ]);
-
   // Live Tournament Capacity
   const slotsFilled = 38;
   const totalSlots = 48;
   const percent = Math.round((slotsFilled / totalSlots) * 100);
 
-  const slotStatus = el("div", { className: "slot-status" }, [
+  const slotStatus = el("div", { className: "slot-status hero-slot-card", dataset: { tilt: "true" } }, [
     el("div", { className: "slot-label-row" }, [
       el("span", { className: "small" }, "Tournament Squad Capacity"),
       el("span", { className: "slot-count" }, `${slotsFilled} / ${totalSlots} Slots Filled`)
@@ -97,13 +80,6 @@ export function createHero(site) {
       el("div", { className: "progress-fill", style: `width: ${percent}%` })
     ]),
     el("p", { className: "slot-alert" }, "⚡ High Demand: Only 10 squad slots remaining in this bracket.")
-  ]);
-
-  // Floating Cyber Badges inside Holographic Card
-  const telemetryFeatures = el("div", { className: "telemetry-tags" }, [
-    el("span", { className: "tele-badge" }, "💎 Instant UPI Payout"),
-    el("span", { className: "tele-badge" }, "🎖️ Verified Certificates"),
-    el("span", { className: "tele-badge" }, `🎁 ${formatINR(luckyPool)} Lucky Pool (Pre-bookings Only)`)
   ]);
 
   // Full-bleed Background Video Player
@@ -255,39 +231,17 @@ export function createHero(site) {
     }
   });
 
-  // Interactive 3D Precision Core Centerpiece
-  const canvas3D = el("canvas", { className: "hero-3d-canvas", id: "hero3DCanvas" });
-  const canvasWrapper = el("div", { className: "canvas-3d-wrapper" }, [canvas3D]);
-
-  // Hero Card with translucent frosted-glass finish so video is visible behind it too
-  const heroCard = el(
-    "div",
-    { className: "hero-card hero-glass-card", "aria-label": "Tournament match countdown and lobby telemetry", dataset: { tilt: "true" } },
-    [
-      el("div", { className: "hero-card-header" }, [
-        el("div", { className: "hud-terminal-pill" }, [
-          el("span", { className: "radar-ping" }),
-          "LIVE CHAMPIONSHIP LOBBY"
-        ]),
-        el("div", { className: "hero-ctrl-actions" }, [cinemaBtn, soundBtn])
-      ]),
-      canvasWrapper,
-      el("p", { className: "small text-uppercase tracking-wider mt-2" }, "Tournament Starts In"),
-      countdown,
-      heroMeta,
-      slotStatus,
-      telemetryFeatures
-    ]
-  );
-
-  setTimeout(() => {
-    initHero3DEngine(canvas3D);
-  }, 80);
+  // Clean Hero Side Panel: Video Controls (Cinema View & Audio) + Tournament Squad Capacity
+  const heroVideoControls = el("div", { className: "hero-ctrl-actions" }, [cinemaBtn, soundBtn]);
+  const heroSidePanel = el("div", { className: "hero-side-panel" }, [
+    heroVideoControls,
+    slotStatus
+  ]);
 
   // The hero content grid
   const heroGrid = el("div", { className: "hero-content-grid wrap", id: "heroContentGrid" }, [
     heroText,
-    heroCard
+    heroSidePanel
   ]);
 
   // Floating exit button when in cinema mode
