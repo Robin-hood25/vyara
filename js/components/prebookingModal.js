@@ -564,12 +564,19 @@ export function createPreBookingModal(site, onTicketGenerated) {
         el("span", { className: "item-name" }, "Tournament Date"),
         el("span", { className: "badge badge-muted" }, site.eventDateText || "TBA (To Be Announced)")
       ]),
+      el("div", { className: "summary-item-row" }, [
+        el("span", { className: "item-name text-amber" }, "Cancellation Policy"),
+        el("strong", { className: "badge badge-flame" }, "NON-REFUNDABLE BOOKING")
+      ]),
       el("div", { className: "summary-item-row highlight-row" }, [
         el("span", { className: "item-name final-amount-label" }, "Final Payable Amount"),
         el("strong", { className: "summary-price text-gradient-blue" }, "₹1,200")
       ]),
       el("p", { className: "small perks-reminder" },
         "🎁 Pre-booking includes guaranteed entry to the ₹10,000 Lucky Pool (Pre-bookings Only) plus full eligibility for ₹10,000 (1st) & ₹5,000 (2nd) Prizes."
+      ),
+      el("p", { className: "small non-refundable-summary-note text-amber mt-1" },
+        "⚠️ Non-refundable booking: Confirmed tournament registrations cannot be refunded once verified, subject to applicable law."
       )
     ]);
 
@@ -700,12 +707,56 @@ export function createPreBookingModal(site, onTicketGenerated) {
     const backBtn = el("button", { className: "btn btn-ghost", type: "button" }, "← Back");
     backBtn.addEventListener("click", () => renderStep(2));
 
+    // Mandatory Agreement Checkbox (Initially Unchecked as required by specification)
+    const termsCheckbox = el("input", {
+      type: "checkbox",
+      id: "termsAgreeCheckbox",
+      className: "terms-agree-checkbox"
+    });
+    termsCheckbox.checked = false;
+
+    // Prominent Non-Refundable Booking Notice & Agreement Section
+    const termsNoticeBox = el("div", { className: "non-refundable-notice-box" }, [
+      el("div", { className: "notice-header-row" }, [
+        el("span", { className: "notice-icon" }, "⚠️"),
+        el("strong", { className: "notice-heading" }, "NON-REFUNDABLE BOOKING")
+      ]),
+      el("p", { className: "notice-body-text" },
+        "By confirming this booking, you acknowledge that confirmed tournament registration fees are generally non-refundable, subject to applicable law and the organizer's obligations if the event is cancelled or cannot be provided."
+      ),
+      el("div", { className: "terms-checkbox-row" }, [
+        termsCheckbox,
+        el("label", { htmlFor: "termsAgreeCheckbox", className: "terms-checkbox-label" }, [
+          "I have read and agree to the ",
+          el("a", {
+            href: "/terms-and-conditions",
+            target: "_blank",
+            rel: "noopener noreferrer",
+            className: "terms-modal-link",
+            title: "Open Terms & Conditions in a new tab"
+          }, "Terms & Conditions and Non-Refundable Payment Policy"),
+          "."
+        ])
+      ])
+    ]);
+
     // Primary CTA: "VERIFY DEMO PAYMENT & GENERATE TICKET"
     const verifyPayBtn = el("button", {
-      className: "btn btn-glow flex-1",
+      className: "btn btn-glow flex-1 btn-disabled",
       type: "button",
       id: "btnVerifyDemoPay"
     }, "VERIFY DEMO PAYMENT & GENERATE TICKET →");
+
+    const updateTermsButtonState = () => {
+      if (termsCheckbox.checked) {
+        verifyPayBtn.classList.remove("btn-disabled");
+        errorAlert.hidden = true;
+      } else {
+        verifyPayBtn.classList.add("btn-disabled");
+      }
+    };
+
+    termsCheckbox.addEventListener("change", updateTermsButtonState);
 
     verifyPayBtn.addEventListener("click", async () => {
       const utr = utrInput.value.trim().toUpperCase();
@@ -714,6 +765,15 @@ export function createPreBookingModal(site, onTicketGenerated) {
         errorAlert.textContent = "Please enter a demo reference number or click 'Auto-Generate Test UTR'.";
         errorAlert.hidden = false;
         utrInput.focus();
+        return;
+      }
+
+      // Strict enforcement of Terms & Conditions acceptance
+      if (!termsCheckbox.checked) {
+        errorAlert.textContent = "You must read and agree to the Terms & Conditions and Non-Refundable Payment Policy before confirming your booking.";
+        errorAlert.hidden = false;
+        termsCheckbox.focus();
+        showToast("Please agree to the Terms & Conditions and Non-Refundable Policy to proceed.", "warning");
         return;
       }
 
@@ -730,6 +790,9 @@ export function createPreBookingModal(site, onTicketGenerated) {
 
       stepState.demoUtr = utr;
 
+      const termsAcceptedAt = new Date().toISOString();
+      const termsVersion = "v1.0";
+
       const result = await verifyDemoPayment({
         bookingId,
         demoUtr: utr,
@@ -738,7 +801,11 @@ export function createPreBookingModal(site, onTicketGenerated) {
         ign: stepState.ign,
         uid: stepState.uid,
         category: "squad",
-        amount: 1200
+        amount: 1200,
+        termsAccepted: true,
+        termsAcceptedAt,
+        termsVersion,
+        userId: stepState.phone
       });
 
       verifyPayBtn.disabled = false;
@@ -762,6 +829,7 @@ export function createPreBookingModal(site, onTicketGenerated) {
 
     container.appendChild(warningBanner);
     container.appendChild(payScreen);
+    container.appendChild(termsNoticeBox);
     container.appendChild(actionRow);
   }
 
@@ -793,6 +861,9 @@ export function createPreBookingModal(site, onTicketGenerated) {
       el("p", { className: "disclosure-body" }, "PRE-BOOKING CONFIRMATION — NOT A FINAL EVENT ADMISSION TICKET"),
       el("p", { className: "small text-muted mt-1" },
         "This digital confirmation reserves your squad pre-booking slot. Official match room credentials and schedule will be notified via registered mobile."
+      ),
+      el("p", { className: "small text-amber mt-1 font-mono" },
+        "🔒 NON-REFUNDABLE BOOKING · Governed by Tournament Terms & Conditions v1.0"
       )
     ]);
 
@@ -850,6 +921,10 @@ export function createPreBookingModal(site, onTicketGenerated) {
           el("div", { className: "ticket-field" }, [
             el("span", { className: "ticket-label" }, "TOURNAMENT DATE"),
             el("span", { className: "ticket-value text-amber" }, site.eventDateText || "TBA (To Be Announced)")
+          ]),
+          el("div", { className: "ticket-field" }, [
+            el("span", { className: "ticket-label" }, "PAYMENT POLICY"),
+            el("span", { className: "ticket-value text-amber font-mono" }, "NON-REFUNDABLE BOOKING (v1.0)")
           ]),
           el("div", { className: "ticket-field" }, [
             el("span", { className: "ticket-label" }, "DEMO REFERENCE (UTR)"),

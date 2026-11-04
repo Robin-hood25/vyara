@@ -16,6 +16,13 @@ async function runSmokeTests() {
   assert(rootRes.body.includes('src="js/main.js"'), "Root page must load js/main.js");
   console.log("✓ Smoke test: Root HTML serving OK");
 
+  // Terms and Conditions smoke test
+  const termsRes = await dispatchRequest(handleRequest, { url: "/terms-and-conditions" });
+  assert.equal(termsRes.statusCode, 200, "Terms page should return status 200");
+  assert(termsRes.headers["content-type"].includes("text/html"), "Terms page should be text/html");
+  assert(termsRes.body.includes("TERMS &amp; CONDITIONS &amp; PAYMENT POLICY"), "Terms page must contain heading");
+  console.log("✓ Smoke test: Terms & Conditions HTML serving OK");
+
   // 2. CSS asset smoke test
   const cssRes = await dispatchRequest(handleRequest, { url: "/style.css" });
   assert.equal(cssRes.statusCode, 200, "style.css should return 200");
@@ -193,7 +200,9 @@ async function runSmokeTests() {
     body: JSON.stringify({
       bookingId,
       demoUtr: testUtr,
-      amount: 1200
+      amount: 1200,
+      termsAccepted: true,
+      termsVersion: "v1.0"
     })
   });
   assert.equal(payVerifyRes.statusCode, 200, "Demo payment verification should return 200");

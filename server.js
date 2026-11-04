@@ -285,6 +285,16 @@ export function handleRequest(req, res, options = {}) {
       const rawUtr = String(data.demoUtr || "").trim().toUpperCase();
       const phone = String(data.phone || "").trim();
 
+      // Enforcement of Terms & Conditions and Non-Refundable Payment Policy
+      if (data.termsAccepted !== true && data.termsAccepted !== "true") {
+        res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({
+          success: false,
+          error: "You must read and agree to the Terms & Conditions and Non-Refundable Payment Policy before confirming your booking."
+        }));
+        return;
+      }
+
       if (!rawUtr || !/^(DEMO[-_]?[A-Z0-9_\-]{3,24}|[0-9]{12})$/i.test(rawUtr)) {
         res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
         res.end(JSON.stringify({
@@ -355,6 +365,10 @@ export function handleRequest(req, res, options = {}) {
       booking.paymentStatus = "DEMO_VERIFIED";
       booking.demoUtr = rawUtr;
       booking.verifiedAt = new Date().toISOString();
+      booking.termsAccepted = true;
+      booking.termsAcceptedAt = data.termsAcceptedAt || new Date().toISOString();
+      booking.termsVersion = String(data.termsVersion || "v1.0").slice(0, 10);
+      booking.nonRefundable = true;
 
       const ticketId = "VYRA-TKT-" + Math.floor(100000 + Math.random() * 900000);
       booking.ticketId = ticketId;
@@ -382,6 +396,11 @@ export function handleRequest(req, res, options = {}) {
         bookingStatus: "PRE-BOOKED",
         tournamentDate: "TBA",
         demoUtr: rawUtr,
+        nonRefundable: true,
+        refundPolicy: "NON-REFUNDABLE: Confirmed tournament registrations cannot be refunded, subject to statutory obligations.",
+        termsAccepted: true,
+        termsAcceptedAt: booking.termsAcceptedAt,
+        termsVersion: booking.termsVersion,
         notice: "DEMO TICKET — PAYMENT SIMULATED. PRE-BOOKING CONFIRMATION — NOT A FINAL EVENT ADMISSION TICKET.",
         issuedAt: new Date().toISOString()
       };
@@ -483,7 +502,9 @@ export function handleRequest(req, res, options = {}) {
 
   // Path resolution with traversal defense
   let safePath = pathname;
-  if (safePath.endsWith("/")) {
+  if (safePath === "/terms-and-conditions" || safePath === "/terms-and-conditions/") {
+    safePath = "/terms-and-conditions.html";
+  } else if (safePath.endsWith("/")) {
     safePath += "index.html";
   }
 

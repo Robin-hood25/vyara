@@ -207,7 +207,8 @@ export function createMyTicketsSection(site, onViewTicket, onStartPrebook) {
           ]),
           el("div", { className: "pass-status-group" }, [
             el("span", { className: "badge badge-neon" }, t.paymentStatus || "DEMO PAYMENT VERIFIED"),
-            el("span", { className: "badge badge-flame" }, t.bookingStatus || "PRE-BOOKED")
+            el("span", { className: "badge badge-flame" }, t.bookingStatus || "PRE-BOOKED"),
+            el("span", { className: "badge badge-muted" }, "NON-REFUNDABLE")
           ])
         ]),
 
@@ -234,14 +235,14 @@ export function createMyTicketsSection(site, onViewTicket, onStartPrebook) {
             el("code", { className: "field-value demo-utr-tag font-mono" }, t.demoUtr || "DEMO-VERIFIED")
           ]),
           el("div", { className: "pass-field" }, [
-            el("span", { className: "field-label" }, "BOOKING IDENTIFIER"),
-            el("span", { className: "field-value text-muted font-mono small" }, t.bookingId || "VYRA-BK-...")
+            el("span", { className: "field-label" }, "PAYMENT POLICY"),
+            el("span", { className: "field-value text-amber font-mono small" }, "NON-REFUNDABLE BOOKING")
           ])
         ]),
 
         // Footer: Demo disclosure & Digital Pass Modal CTA
         el("div", { className: "pass-card-footer" }, [
-          el("p", { className: "pass-demo-notice" }, "⚡ DEMO PASS — PAYMENT SIMULATED. NOT AN OFFICIAL BANK TRANSACTION."),
+          el("p", { className: "pass-demo-notice" }, "⚡ DEMO PASS — PAYMENT SIMULATED. NON-REFUNDABLE REGISTRATION."),
           el("button", {
             className: "btn btn-view-pass",
             type: "button",

@@ -318,6 +318,46 @@ async function run() {
     fs.writeFileSync("scratch/03-demo-payment-desktop.png", Buffer.from(shotStep3.data, "base64"));
     console.log("Saved scratch/03-demo-payment-desktop.png");
 
+    // Verify Terms agreement checkbox is initially UNCHECKED (Acceptance Requirement)
+    const termsCheckInitial = await send("Runtime.evaluate", {
+      expression: `(() => {
+        const cb = document.querySelector("#termsAgreeCheckbox");
+        const notice = document.querySelector(".non-refundable-notice-box");
+        return {
+          checkboxExists: !!cb,
+          isChecked: cb ? cb.checked : null,
+          noticeText: notice ? notice.innerText : ""
+        };
+      })()`,
+      returnByValue: true
+    });
+    assert.equal(termsCheckInitial.result.value.checkboxExists, true, "Agreement checkbox must exist");
+    assert.equal(termsCheckInitial.result.value.isChecked, false, "Agreement checkbox must be initially UNCHECKED");
+    assert(termsCheckInitial.result.value.noticeText.includes("NON-REFUNDABLE BOOKING"), "Notice box must display NON-REFUNDABLE BOOKING");
+    console.log("✓ Terms & Conditions checkbox is initially unchecked and notice displayed");
+
+    // Attempting to submit without checking agreement must fail
+    await send("Runtime.evaluate", {
+      expression: `document.querySelector("#btnVerifyDemoPay").click()`
+    });
+    await sleep(300);
+    const stillStep3 = await send("Runtime.evaluate", {
+      expression: `!document.querySelector(".digital-ticket-card") && !!document.querySelector("#btnVerifyDemoPay")`,
+      returnByValue: true
+    });
+    assert.equal(stillStep3.result.value, true, "Must NOT proceed to step 4 without accepting terms");
+    console.log("✓ Verified: Cannot proceed without accepting Terms & Conditions");
+
+    // Now actively check the agreement checkbox
+    await send("Runtime.evaluate", {
+      expression: `(() => {
+        const cb = document.querySelector("#termsAgreeCheckbox");
+        cb.checked = true;
+        cb.dispatchEvent(new Event('change'));
+      })()`
+    });
+    await sleep(200);
+
     // Verify Demo Payment and generate Digital Ticket (Acceptance 10, 11)
     console.log("-> Verifying Demo Payment & Generating Ticket...");
     await send("Runtime.evaluate", {

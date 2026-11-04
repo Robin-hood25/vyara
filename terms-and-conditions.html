@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms & Conditions and Non-Refundable Payment Policy — VYRA Esports</title>
+  <meta name="description"
+    content="Official Terms & Conditions, Rules, and Non-Refundable Payment Policy for the VYRA Free Fire Championship esports tournament.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Dedicated Terms & Conditions Page Layout */
+    .terms-page-body {
+      background-color: #080A0F;
+      color: #F5F7FA;
+      min-height: 100vh;
+      font-family: var(--font-body, 'Outfit', sans-serif);
+      margin: 0;
+      padding: 0;
+      line-height: 1.65;
+    }
+
+    .terms-navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(8, 10, 15, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(20, 92, 255, 0.2);
+      padding: 16px 0;
+    }
+
+    .terms-nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .terms-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #F5F7FA;
+    }
+
+    .terms-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .terms-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .terms-hero-header {
+      margin-bottom: 40px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid rgba(20, 92, 255, 0.2);
+    }
+
+    .terms-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #145CFF;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .terms-title {
+      font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      margin: 0 0 16px;
+      color: #F5F7FA;
+    }
+
+    .terms-subtitle {
+      font-size: 1.1rem;
+      color: #CBD5E1;
+      max-width: 780px;
+      margin: 0 0 24px;
+    }
+
+    .terms-meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .terms-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: rgba(14, 18, 25, 0.85);
+      border: 1px solid rgba(20, 92, 255, 0.25);
+      font-family: var(--font-mono, monospace);
+      font-size: 0.8rem;
+      color: #CBD5E1;
+    }
+
+    .terms-meta-pill strong {
+      color: #F5F7FA;
+    }
+
+    /* Table of contents quick navigation */
+    .terms-toc-card {
+      background: #0E1219;
+      border: 1px solid rgba(20, 92, 255, 0.25);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 48px;
+    }
+
+    .terms-toc-title {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #145CFF;
+      margin: 0 0 16px;
+    }
+
+    .terms-toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .terms-toc-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #CBD5E1;
+      text-decoration: none;
+      font-size: 0.92rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(8, 10, 15, 0.5);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .terms-toc-link:hover {
+      color: #F5F7FA;
+      border-color: #145CFF;
+      background: rgba(20, 92, 255, 0.12);
+      transform: translateX(4px);
+    }
+
+    /* Section Cards */
+    .terms-section {
+      background: #0E1219;
+      border: 1px solid rgba(245, 247, 250, 0.08);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+      scroll-margin-top: 100px;
+      transition: border-color 0.2s ease;
+    }
+
+    .terms-section:focus-within,
+    .terms-section:target {
+      border-color: #145CFF;
+      box-shadow: 0 0 24px rgba(20, 92, 255, 0.15);
+    }
+
+    .section-badge {
+      display: inline-block;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #145CFF;
+      margin-bottom: 8px;
+    }
+
+    .terms-section h2 {
+      font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #F5F7FA;
+      margin: 0 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .terms-section p {
+      color: #CBD5E1;
+      margin: 0 0 16px;
+      font-size: 0.98rem;
+    }
+
+    .terms-section ul {
+      margin: 0 0 20px;
+      padding-left: 20px;
+      color: #CBD5E1;
+    }
+
+    .terms-section li {
+      margin-bottom: 10px;
+      font-size: 0.96rem;
+    }
+
+    .terms-section strong {
+      color: #F5F7FA;
+    }
+
+    /* Featured Non-Refundable Notice Callout */
+    .terms-alert-box {
+      background: rgba(255, 48, 59, 0.08);
+      border: 2px solid #FF303B;
+      border-radius: 10px;
+      padding: 24px;
+      margin: 24px 0;
+      position: relative;
+    }
+
+    .terms-alert-title {
+      font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #FF303B;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .terms-alert-body {
+      color: #F5F7FA;
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.6;
+      margin: 0 0 12px;
+    }
+
+    /* Price Table */
+    .terms-price-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.95rem;
+    }
+
+    .terms-price-table th,
+    .terms-price-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(245, 247, 250, 0.08);
+    }
+
+    .terms-price-table th {
+      background: rgba(20, 92, 255, 0.1);
+      color: #F5F7FA;
+      font-family: var(--font-mono, monospace);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    .terms-price-table tr:hover td {
+      background: rgba(20, 92, 255, 0.05);
+    }
+
+    /* Placeholders */
+    .terms-placeholder-box {
+      background: rgba(20, 92, 255, 0.08);
+      border: 1px dashed #145CFF;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.88rem;
+      color: #CBD5E1;
+      margin: 16px 0;
+    }
+
+    /* Footer CTAs */
+    .terms-bottom-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(20, 92, 255, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .terms-container {
+        padding: 24px 16px 60px;
+      }
+      .terms-section {
+        padding: 20px 16px;
+      }
+      .terms-price-table {
+        display: block;
+        overflow-x: auto;
+      }
+      .terms-bottom-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+
+<body class="terms-page-body">
+
+  <!-- Header Navigation -->
+  <header class="terms-navbar" role="banner">
+    <div class="terms-nav-inner">
+      <a href="/" class="terms-nav-logo" aria-label="Return to VYRA Esports Tournament Hub">
+        <span class="brand-symbol" style="color: #FF303B; font-size: 1.4rem;">◆</span>
+        <span class="brand-name" style="font-family: var(--font-display, sans-serif); font-size: 1.6rem; font-weight: 900; letter-spacing: 0.05em;">VYRA</span>
+        <span class="brand-tag" style="background: rgba(20, 92, 255, 0.15); border: 1px solid #145CFF; color: #145CFF; padding: 2px 6px; font-size: 0.7rem; border-radius: 4px; font-weight: 700;">ESPORTS</span>
+      </a>
+      <div class="terms-nav-actions">
+        <a href="/" class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.85rem;">← Return to Tournament</a>
+        <a href="/#prebook" class="btn btn-glow" style="padding: 8px 18px; font-size: 0.85rem;">Pre-Book Squad — ₹1,200</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Wrap -->
+  <main class="terms-container" role="main">
+
+    <!-- Document Header -->
+    <div class="terms-hero-header">
+      <div class="terms-eyebrow">
+        <span class="live-dot"></span>
+        OFFICIAL TOURNAMENT LEGAL DOCUMENT // VERSION 1.0
+      </div>
+      <h1 class="terms-title">TERMS &amp; CONDITIONS &amp; PAYMENT POLICY</h1>
+      <p class="terms-subtitle">
+        Official championship registration guidelines, ticket verification terms, fair play code, and binding non-refundable payment policy for the VYRA Free Fire Championship.
+      </p>
+      <div class="terms-meta-strip">
+        <div class="terms-meta-pill">Document Version: <strong>v1.0 (Official)</strong></div>
+        <div class="terms-meta-pill">Effective Date: <strong>November 2026</strong></div>
+        <div class="terms-meta-pill">Status: <strong>Legally Binding &amp; Server-Enforced</strong></div>
+        <div class="terms-meta-pill">Governed By: <strong>VYRA Esports Administration</strong></div>
+      </div>
+    </div>
+
+    <!-- Quick Table of Contents -->
+    <nav class="terms-toc-card" aria-label="Table of Contents">
+      <div class="terms-toc-title">Table of Contents</div>
+      <div class="terms-toc-grid">
+        <a href="#section-a" class="terms-toc-link"><span>01</span> A. Tournament Registration</a>
+        <a href="#section-b" class="terms-toc-link"><span>02</span> B. Booking Prices &amp; Availability</a>
+        <a href="#section-c" class="terms-toc-link" style="color: #FF303B; font-weight: 700;"><span>03</span> C. Non-Refundable Payments</a>
+        <a href="#section-d" class="terms-toc-link"><span>04</span> D. Tournament Rules &amp; Fair Play</a>
+        <a href="#section-e" class="terms-toc-link"><span>05</span> E. Digital Tickets &amp; Entry</a>
+        <a href="#section-f" class="terms-toc-link"><span>06</span> F. Prizes &amp; Lucky Pool</a>
+        <a href="#section-g" class="terms-toc-link"><span>07</span> G. Changes &amp; Decisions</a>
+        <a href="#section-h" class="terms-toc-link"><span>08</span> H. Privacy &amp; Contact</a>
+      </div>
+    </nav>
+
+    <!-- SECTION A: Tournament Registration -->
+    <article class="terms-section" id="section-a">
+      <span class="section-badge">Section 01 // Eligibility &amp; Enrollment</span>
+      <h2>A. Tournament Registration</h2>
+      <p>
+        Registration for the VYRA Free Fire Championship is governed by strict capacity brackets and qualification requirements. By submitting a registration, participants agree to the following terms:
+      </p>
+      <ul>
+        <li>
+          <strong>Slot Availability:</strong> Tournament enrollment is strictly subject to available lobby bracket capacity. Once bracket capacity reaches its cap, registration for that tier is closed immediately.
+        </li>
+        <li>
+          <strong>Accurate Information:</strong> All participants must submit truthful, complete, and accurate information during registration, including participant name, valid 10-digit Indian mobile number, in-game Free Fire nickname (IGN), and Free Fire character UID.
+        </li>
+        <li>
+          <strong>Provisional vs. Confirmed Status:</strong> Completing a registration form or initiating checkout does not constitute a guaranteed slot. A tournament booking is confirmed <em>only</em> after the website system validates the transaction and issues an official Digital Ticket with a verified Ticket ID.
+        </li>
+        <li>
+          <strong>Right to Refuse &amp; Disqualify:</strong> VYRA Esports reserves the express right to reject, void, or disqualify any registration that contains duplicate numbers, misleading details, bot-generated data, fake player UIDs, or fraudulent submissions.
+        </li>
+      </ul>
+    </article>
+
+    <!-- SECTION B: Booking Prices -->
+    <article class="terms-section" id="section-b">
+      <span class="section-badge">Section 02 // Pricing Architecture &amp; Availability</span>
+      <h2>B. Booking Prices &amp; Availability</h2>
+      <p>
+        The official tournament registration fee structure and slot availability are established as follows:
+      </p>
+
+      <table class="terms-price-table">
+        <thead>
+          <tr>
+            <th>Pass Tier</th>
+            <th>Original Price</th>
+            <th>Pre-Booking Price</th>
+            <th>Savings</th>
+            <th>Availability Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Squad Pass</strong> (1 Full Squad · 4 Players)</td>
+            <td><del>₹2,000</del></td>
+            <td><strong style="color: #145CFF; font-size: 1.1rem;">₹1,200</strong></td>
+            <td><span class="badge badge-neon">SAVE ₹800</span></td>
+            <td><strong style="color: #2ECC71;">ACTIVE / OPEN</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Solo Pass</strong> (1 Solo Competitor)</td>
+            <td><del>₹500</del></td>
+            <td>₹350</td>
+            <td><span class="badge badge-muted">SAVE ₹150</span></td>
+            <td><strong style="color: #FF303B;">SOLD OUT / UNAVAILABLE</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ul>
+        <li>
+          <strong>Solo Pass Availability:</strong> Solo Pass registrations are completely <strong>SOLD OUT</strong>. The Solo category is closed to new applicants and cannot be booked under any circumstances.
+        </li>
+        <li>
+          <strong>Anti-Tampering &amp; Security Validation:</strong> Users are strictly prohibited from attempting to purchase a sold-out pass or altering pricing by manipulating client-side scripts, browser cookies, local storage, or dispatching direct API requests.
+        </li>
+        <li>
+          <strong>Authoritative Backend Pricing:</strong> All fee calculations and ticket authorizations are validated strictly by the central server. The backend rejects any modified, bypassed, or tampered price payload with an immediate security block.
+        </li>
+      </ul>
+    </article>
+
+    <!-- SECTION C: Non-Refundable Payments -->
+    <article class="terms-section" id="section-c">
+      <span class="section-badge" style="color: #FF303B;">Section 03 // Critical Payment Policy</span>
+      <h2>C. Non-Refundable Payments</h2>
+
+      <!-- Mandatory Callout Notice -->
+      <div class="terms-alert-box">
+        <div class="terms-alert-title">
+          <span>⚠️</span>
+          IMPORTANT: ALL CONFIRMED TOURNAMENT BOOKINGS ARE NON-REFUNDABLE.
+        </div>
+        <div class="terms-alert-body">
+          Once a tournament booking has been confirmed and a Digital Ticket issued by VYRA Esports, the registration fee is strictly non-refundable and cannot be refunded for a participant's change of mind, personal scheduling conflict, absence, late arrival, disqualification due to a rule violation, or failure to attend.
+        </div>
+      </div>
+
+      <p>
+        Participants must review this policy with care prior to completing checkout:
+      </p>
+      <ul>
+        <li>
+          <strong>Finality of Registration:</strong> Because tournament slot reservations directly allocate custom match room lobby positions, referee bandwidth, and prize pool calculations, confirmed registration payments cannot be returned or cancelled once verified.
+        </li>
+        <li>
+          <strong>Pre-Payment Review Obligation:</strong> Participants are required to thoroughly review their chosen pass category, squad roster, mobile contact, and payment details before confirming their booking.
+        </li>
+        <li>
+          <strong>Exclusions from Refund Eligibility:</strong> Non-attendance, team disputes, internet outages, phone battery failure, device incompatibility, or match lobby disqualification do not constitute grounds for a refund.
+        </li>
+        <li>
+          <strong>Statutory Rights &amp; Event Cancellation:</strong> This policy does not exclude, limit, or modify any statutory consumer guarantees, remedy, or legal rights that cannot lawfully be excluded under applicable law. If VYRA Esports cancels the tournament or cannot provide the promised event, refunds or appropriate remedies will be administered in accordance with applicable law and the specific circumstances. We do not claim that payments are non-refundable regardless of the reason.
+        </li>
+      </ul>
+    </article>
+
+    <!-- SECTION D: Tournament Rules and Fair Play -->
+    <article class="terms-section" id="section-d">
+      <span class="section-badge">Section 04 // Competition Integrity</span>
+      <h2>D. Tournament Rules &amp; Fair Play</h2>
+      <p>
+        Fair play is the core foundation of VYRA Esports. All registered players are bound by tournament conduct rules:
+      </p>
+      <ul>
+        <li>
+          <strong>Adherence to Official Directions:</strong> Competitors must strictly comply with all tournament rules, referee announcements, and scheduled lobby check-in windows.
+        </li>
+        <li>
+          <strong>Anti-Cheat Zero Tolerance:</strong> Any form of cheating, third-party aimbots, script injectors, modified APK files, glitch exploits, emulator bypasses, smurfing, account sharing, or illegal teaming with opposing squads will result in immediate match disqualification and permanent platform ban without refund.
+        </li>
+        <li>
+          <strong>Harassment &amp; Toxicity:</strong> Harassment, abusive language, hate speech, or unsportsmanlike conduct directed toward referees, staff, or opposing competitors is strictly prohibited.
+        </li>
+        <li>
+          <strong>Adjudication &amp; Dispute Resolution:</strong> Match referees hold final authority over kill points, placement scores, and rule interpretations based strictly on published tournament standards.
+        </li>
+      </ul>
+
+      <div class="terms-placeholder-box">
+        <strong>[OFFICIAL RULES PLACEHOLDER]:</strong> Complete in-game room scoring criteria, point distribution tables, custom lobby weapon tier guidelines, and tiebreaker conditions are published in the Tournament Rules section of the live player portal.
+      </div>
+    </article>
+
+    <!-- SECTION E: Digital Tickets and Entry -->
+    <article class="terms-section" id="section-e">
+      <span class="section-badge">Section 05 // Credential Security &amp; Access</span>
+      <h2>E. Digital Tickets &amp; Entry</h2>
+      <p>
+        Upon successful payment verification, the system issues a tamper-evident Digital Pass:
+      </p>
+      <ul>
+        <li>
+          <strong>Credential Security:</strong> Each participant is responsible for maintaining the confidentiality of their unique Ticket ID (e.g., <code>VYRA-TKT-XXXXXX</code>) and dynamic digital QR code. Do not share credentials publicly.
+        </li>
+        <li>
+          <strong>Authorized Allocation:</strong> Each issued Squad Pass permits entry for exactly one 4-player squad roster.
+        </li>
+        <li>
+          <strong>Duplicate &amp; Counterfeit Rejection:</strong> Duplicate, photocopied, screenshot-shared, forwarded, or previously redeemed passes will be automatically flagged and rejected by tournament verification gates.
+        </li>
+        <li>
+          <strong>Official Staff Verification:</strong> Admission to match lobbies and distribution of custom room ID and password credentials is strictly contingent on identity and phone verification by authorized tournament officials.
+        </li>
+      </ul>
+    </article>
+
+    <!-- SECTION F: Prizes and Lucky Pool -->
+    <article class="terms-section" id="section-f">
+      <span class="section-badge">Section 06 // Prize Structure &amp; Distribution</span>
+      <h2>F. Prizes &amp; Lucky Pool</h2>
+      <p>
+        The official prize pool distribution for the championship is guaranteed as published:
+      </p>
+      <ul>
+        <li>
+          <strong>1st Place Champion Squad:</strong> ₹10,000 cash prize (paid directly via verified UPI within 48 hours of match completion).
+        </li>
+        <li>
+          <strong>2nd Place Runner-Up Squad:</strong> ₹5,000 cash prize (paid directly via verified UPI within 48 hours of match completion).
+        </li>
+        <li>
+          <strong>Exclusive Lucky Pool:</strong> ₹10,000 promotional prize pool reserved exclusively for eligible pre-booking participants.
+        </li>
+        <li>
+          <strong>Lucky Pool Eligibility:</strong> The Lucky Pool is an exclusive incentive draw for verified pre-registered squads. It is not guaranteed to every participant. Selection and prize distribution are conducted transparently in accordance with announced pre-booking eligibility criteria.
+        </li>
+        <li>
+          <strong>No Hidden Deductions:</strong> No unauthorized deductions or unannounced conditions will be applied to declared tournament prizes.
+        </li>
+      </ul>
+    </article>
+
+    <!-- SECTION G: Changes and Organizer Decisions -->
+    <article class="terms-section" id="section-g">
+      <span class="section-badge">Section 07 // Operational Adjustments</span>
+      <h2>G. Changes &amp; Organizer Decisions</h2>
+      <p>
+        Running a competitive esports championship requires occasional logistical adjustments:
+      </p>
+      <ul>
+        <li>
+          <strong>Operational Flexibility:</strong> Tournament schedules, match dates, bracket timings, and lobby configurations may be modified when reasonably necessary due to game server outages, game title updates, or emergency operational needs.
+        </li>
+        <li>
+          <strong>Participant Communication:</strong> Material changes to schedule or rules will be communicated promptly through registered participant mobile numbers (WhatsApp / SMS) and official platform announcements.
+        </li>
+        <li>
+          <strong>Commitment to Fairness:</strong> Any postponement, rescheduling, or material modification will be conducted consistently with applicable law and the promises made to registered competitors.
+        </li>
+      </ul>
+    </article>
+
+    <!-- SECTION H: Privacy and Contact -->
+    <article class="terms-section" id="section-h">
+      <span class="section-badge">Section 08 // Privacy &amp; Support Channels</span>
+      <h2>H. Privacy &amp; Organizer Contact</h2>
+      <p>
+        We respect player privacy and handle participant data responsibly:
+      </p>
+      <ul>
+        <li>
+          <strong>Data Usage:</strong> Information collected during pre-booking (Captain Name, Mobile Number, Free Fire IGN, Character UID) is utilized exclusively for booking administration, match room dispatch, participant communication, anti-cheat verification, and prize distribution.
+        </li>
+        <li>
+          <strong>Responsible Handling:</strong> We do not sell or trade player data to unauthorized commercial third parties. No unverified third-party privacy certifications or international standards are claimed.
+        </li>
+        <li>
+          <strong>Official Communication Channels:</strong>
+          <ul>
+            <li><strong>Tournament WhatsApp Desk:</strong> +91 9876543210 (24/7 Admin Support)</li>
+            <li><strong>Official Instagram:</strong> <a href="https://www.instagram.com/vyara.digital?utm_source=ig_web_button_share_sheet&srtk=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" style="color: #145CFF;">@vyara.digital</a></li>
+            <li><strong>Official Tournament UPI ID:</strong> vyaraesports@upi</li>
+            <li><strong>Support Email Desk:</strong> <code>[Official Organizer Email: support@vyra.esports — Pending Channel Finalization]</code></li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+
+    <!-- Bottom Actions / Navigation -->
+    <div class="terms-bottom-actions">
+      <div>
+        <a href="/" class="btn btn-ghost">← Return to Tournament Hub</a>
+      </div>
+      <div>
+        <a href="/#prebook" class="btn btn-glow">Pre-Book Your Squad — ₹1,200 →</a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" style="margin-top: 60px;">
+    <div class="wrap footer-inner">
+      <div class="footer-top-grid">
+        <div class="footer-brand-block">
+          <div class="brand-logo-mark">
+            <span class="brand-symbol">◆</span>
+            <span class="brand-name">VYRA</span>
+            <span class="brand-tag">ESPORTS</span>
+          </div>
+          <p class="footer-tagline">Drop in. Outlast everyone. Take home ₹10,000.</p>
+        </div>
+        <div class="footer-links-block">
+          <p class="footer-col-title">Legal &amp; Policy</p>
+          <div class="footer-links-grid">
+            <a href="/terms-and-conditions" class="footer-link" style="color: #145CFF;">Terms &amp; Conditions</a>
+            <a href="/#rules" class="footer-link">Tournament Rules</a>
+            <a href="/#prizes" class="footer-link">Prize Pool</a>
+            <a href="/#contact" class="footer-link">Organizer Support</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copyright">
+          &copy; 2026 VYRA Esports. All rights reserved. Free Fire is a registered trademark of Garena. This championship is an independent competitive esports tournament.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

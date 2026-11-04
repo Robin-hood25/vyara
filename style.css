@@ -5071,6 +5071,125 @@ h3 {
   }
 }
 
+/* ==========================================================================
+   TERMS & CONDITIONS & NON-REFUNDABLE PAYMENT POLICY STYLES
+   ========================================================================== */
+
+.footer-legal-bar {
+  margin-bottom: 14px;
+}
+
+.footer-legal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-blue);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 14px;
+  background: rgba(20, 92, 255, 0.08);
+  border: 1px solid rgba(20, 92, 255, 0.25);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.footer-legal-link:hover {
+  background: rgba(20, 92, 255, 0.18);
+  border-color: var(--accent-blue);
+  color: var(--text-white);
+  transform: translateY(-1px);
+}
+
+.non-refundable-notice-box {
+  background: rgba(255, 48, 59, 0.08);
+  border: 1.5px solid rgba(255, 48, 59, 0.45);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin-top: 14px;
+  box-shadow: 0 4px 16px rgba(255, 48, 59, 0.08);
+}
+
+.notice-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.notice-icon {
+  font-size: 1.1rem;
+}
+
+.notice-heading {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-red);
+}
+
+.notice-body-text {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+}
+
+.terms-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 48, 59, 0.2);
+}
+
+.terms-agree-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent-red);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.terms-checkbox-label {
+  font-size: 0.86rem;
+  color: var(--text-primary);
+  line-height: 1.45;
+  cursor: pointer;
+  user-select: none;
+}
+
+.terms-modal-link {
+  color: var(--accent-blue);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.terms-modal-link:hover {
+  color: var(--accent-blue-hover);
+  text-decoration-color: var(--accent-red);
+}
+
+.btn-disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.5);
+  pointer-events: auto !important;
+}
+
+.non-refundable-summary-note {
+  font-size: 0.82rem;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+}
+
+
 
 
 

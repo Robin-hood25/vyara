@@ -217,7 +217,23 @@ async function runSecurityTests() {
   });
   assert.equal(badOtpRes.statusCode, 400, "Incorrect OTP must be rejected with 400");
 
-  // D. First demo payment verification succeeds
+  // D. Payment verification without Terms & Conditions acceptance must fail (400 Bad Request)
+  const noTermsPayRes = await dispatchRequest(handleRequest, {
+    url: "/api/bookings/verify-demo-payment",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookingId: testBookingId,
+      demoUtr: "DEMO-NO-TERMS",
+      amount: 1200
+      // termsAccepted omitted
+    })
+  });
+  assert.equal(noTermsPayRes.statusCode, 400, "Must reject payment confirmation when terms are not accepted");
+  const noTermsData = JSON.parse(noTermsPayRes.body);
+  assert(noTermsData.error.includes("Terms & Conditions"), "Error must state Terms & Conditions must be accepted");
+
+  // E. Valid demo payment verification with Terms accepted succeeds
   const uniqueUtr = "DEMO-UTR-SEC-" + Date.now();
   const firstPayRes = await dispatchRequest(handleRequest, {
     url: "/api/bookings/verify-demo-payment",
@@ -226,12 +242,17 @@ async function runSecurityTests() {
     body: JSON.stringify({
       bookingId: testBookingId,
       demoUtr: uniqueUtr,
-      amount: 1200
+      amount: 1200,
+      termsAccepted: true,
+      termsVersion: "v1.0"
     })
   });
   assert.equal(firstPayRes.statusCode, 200, "Valid demo UTR verification must succeed");
+  const verifiedData = JSON.parse(firstPayRes.body);
+  assert.equal(verifiedData.ticket.termsAccepted, true, "Ticket must record terms acceptance");
+  assert.equal(verifiedData.ticket.nonRefundable, true, "Ticket must be marked non-refundable");
 
-  // E. Duplicate demo UTR reuse must be blocked (409 Conflict)
+  // F. Duplicate demo UTR reuse must be blocked (409 Conflict)
   const dupPayRes = await dispatchRequest(handleRequest, {
     url: "/api/bookings/verify-demo-payment",
     method: "POST",
@@ -239,11 +260,13 @@ async function runSecurityTests() {
     body: JSON.stringify({
       bookingId: "VYRA-BK-ANOTHER",
       demoUtr: uniqueUtr,
-      amount: 1200
+      amount: 1200,
+      termsAccepted: true,
+      termsVersion: "v1.0"
     })
   });
   assert.equal(dupPayRes.statusCode, 409, "Reused demo UTR must be rejected with 409 Conflict");
-  console.log("✓ Security Check: Amount tamper protection, Solo booking rejection & Duplicate UTR prevention verified");
+  console.log("✓ Security Check: Amount tamper protection, Solo booking rejection, Terms enforcement & Duplicate UTR prevention verified");
 
   console.log("\n>>> ALL SECURITY CHECKS PASSED SUCCESSFULLY! <<<\n");
 }
