@@ -10,7 +10,7 @@ export const SITE = {
   venue: "Custom Battle Royale Rooms (Mobile Only)",
   whatsapp: "919876543210", // Tournament Admin WhatsApp
   upiId: "vyaraesports@upi", // Official Tournament UPI ID
-  instagram: "https://instagram.com/vyraesports",
+  instagram: "https://www.instagram.com/vyara.digital?utm_source=ig_web_button_share_sheet&srtk=ZDNlZDc0MzIxNw==",
   entryFee: 1200, // Squad entry fee in INR
   entryFeeSolo: 350, // Solo entry fee (1 Player: ₹350 - SOLD OUT)
   entryFeeSquad: 1200, // Squad entry fee (1 Squad: ₹1,200 - AVAILABLE)
